@@ -80,7 +80,7 @@ CREATE TABLE `follows`
   `to_user_id`  bigint NOT NULL                COMMENT '被关注用户id',
   `follower_id` bigint NOT NULL                COMMENT '执行关注的用户id',
   PRIMARY KEY (`id`),
-  INDEX (`user_id`),
+  INDEX (`to_user_id`),
   INDEX (`follower_id`)
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1
