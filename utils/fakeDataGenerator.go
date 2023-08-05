@@ -10,8 +10,8 @@ func FakeComments(num int) {
 	gofakeit.Seed(time.Now().Unix())
 	for i := 0; i < num; i++ {
 		comment := dao.Comment{}
-		comment.UserId = gofakeit.Int64()
-		comment.VideoId = gofakeit.Int64()
+		comment.UserId = int64(i)
+		comment.VideoId = int64(i)
 		comment.Content = gofakeit.Sentence(20)
 		comment.CreateDate = gofakeit.Date()
 		_, err := dao.InsertComment(comment)

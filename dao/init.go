@@ -23,8 +23,8 @@ func Init() {
 	)
 
 	dsn := "tiktokDEV:qxy2023@tcp(47.94.162.202:3306)/tiktokLite?charset=utf8mb4&parseTime=True&loc=Local"
-
-	Db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+	var err error
+	Db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
 	})
 	if err != nil {
