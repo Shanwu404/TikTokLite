@@ -35,7 +35,7 @@ func (us *UserServiceImpl) QueryUserByUsername(username string) (dao.User, error
 // QueryUserByID 根据id获取User对象 屏蔽密码
 func (us *UserServiceImpl) QueryUserByID(id int64) (dao.User, error) {
 	log.Println("Query user successfully! Querying user by ID:", id)
-	user, err := dao.QueryUserByID(uint64(id))
+	user, err := dao.QueryUserByID(id)
 	if err != nil {
 		log.Println("Error querying user by ID:", id, err)
 		return dao.User{}, err
