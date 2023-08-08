@@ -5,7 +5,7 @@ import (
 )
 
 type User struct {
-	ID       int64
+	ID       uint64
 	Username string
 	Password string
 }
@@ -20,7 +20,7 @@ func InsertUser(user *User) error {
 }
 
 // QueryUserByID 根据ID查询User
-func QueryUserByID(id int64) (*User, error) {
+func QueryUserByID(id uint64) (*User, error) {
 	user := &User{}
 	result := Db.Where("id = ?", id).First(user)
 	if err := result.Error; err != nil {

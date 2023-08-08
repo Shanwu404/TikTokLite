@@ -33,7 +33,7 @@ func (us *UserServiceImpl) QueryUserByUsername(username string) (dao.User, error
 }
 
 // QueryUserByID 根据id获取User对象 屏蔽密码
-func (us *UserServiceImpl) QueryUserByID(id int64) (dao.User, error) {
+func (us *UserServiceImpl) QueryUserByID(id uint64) (dao.User, error) {
 	log.Println("Query user successfully! Querying user by ID:", id)
 	user, err := dao.QueryUserByID(id)
 	if err != nil {
@@ -46,19 +46,19 @@ func (us *UserServiceImpl) QueryUserByID(id int64) (dao.User, error) {
 }
 
 // Register 用户注册，返回注册用户ID，状态码和状态信息
-func (us *UserServiceImpl) Register(username string, password string) (int64, int32, string) {
+func (us *UserServiceImpl) Register(username string, password string) (uint64, int32, string) {
 	log.Println("Registering user:", username)
 	user, _ := dao.QueryUserByUsername(username)
 
 	// 先user返回值不为空指针，再去判断是否username已存在
 	if user != nil && username == user.Username {
-		return -1, 1, "User already exist!"
+		return 0, 1, "User already exist!"
 	}
 
 	encoderPassword, err := HashEncode(password)
 	if err != nil {
 		log.Println("Password encoding error:", err)
-		return -1, 1, "Incorrect password format!"
+		return 0, 1, "Incorrect password format!"
 	}
 	newUser := &dao.User{ // 创建一个指向User的指针
 		Username: username,
@@ -67,11 +67,11 @@ func (us *UserServiceImpl) Register(username string, password string) (int64, in
 	err = dao.InsertUser(newUser)
 	if err != nil {
 		log.Println("User registration error:", err)
-		return -1, 1, "User registration failed!"
+		return 0, 1, "User registration failed!"
 	}
 
 	log.Println("User registered successfully:", newUser)
-	return int64(newUser.ID), 0, "Register successfully!"
+	return newUser.ID, 0, "Register successfully!"
 }
 
 // Login 用户登录，返回状态码和状态信息
