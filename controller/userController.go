@@ -2,14 +2,16 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
+	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/service"
 	"github.com/gin-gonic/gin"
 )
 
-type Response struct {
-	StatusCode int32  `json:"status_code"`
-	StatusMsg  string `json:"status_msg,omitempty"`
+type UserResponse struct {
+	Response
+	User dao.UserResp `json:"user"`
 }
 
 type LoginResponse struct {
@@ -39,14 +41,12 @@ func NewUserController(userService service.UserService) *UserController {
 }
 
 // Register POST /douyin/user/register/ 用户注册
-func (userController *UserController) Register(c *gin.Context) {
-	var request RegisterRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+func (uc *UserController) Register(c *gin.Context) {
+	// 可以修改为查询JSON
+	username := c.Query("username")
+	password := c.Query("password")
 
-	userId, code, message := userController.userService.Register(request.Username, request.Password)
+	userId, code, message := uc.userService.Register(username, password)
 
 	if code != 0 {
 		c.JSON(http.StatusOK, LoginResponse{
@@ -63,21 +63,17 @@ func (userController *UserController) Register(c *gin.Context) {
 }
 
 // Login POST /douyin/user/login/ 用户登录
-func (userController *UserController) Login(c *gin.Context) {
-	var request LoginRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+func (uc *UserController) Login(c *gin.Context) {
+	username := c.Query("username")
+	password := c.Query("password")
 
-	code, message := userController.userService.Login(request.Username, request.Password)
+	code, message := uc.userService.Login(username, password)
 	if code != 0 {
 		c.JSON(http.StatusOK, LoginResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 		})
-		return
 	} else {
-		user, err := userController.userService.QueryUserByUsername(request.Username)
+		user, err := uc.userService.QueryUserByUsername(username)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error occurred while retrieving user information"})
 			return
@@ -88,4 +84,21 @@ func (userController *UserController) Login(c *gin.Context) {
 		})
 		return
 	}
+}
+
+// UserInfo GET /douyin/user/ 用户信息
+func (uc *UserController) UserInfo(c *gin.Context) {
+	userId := c.Query("user_id")
+	id, _ := strconv.ParseUint(userId, 10, 64) // 字符串转uint64
+	userInfo, err := uc.userService.QueryUserRespByID(id)
+	if err != nil {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "User does not exist"},
+		})
+		return
+	}
+	c.JSON(http.StatusOK, UserResponse{
+		Response: Response{StatusCode: 0},
+		User:     userInfo,
+	})
 }
