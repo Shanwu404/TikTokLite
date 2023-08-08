@@ -19,11 +19,19 @@ func TestUserServiceImpl_QueryUserByName(t *testing.T) {
 	fmt.Println(err)
 }
 
-func TestUserServiceImpl_QueryUserById(t *testing.T) {
+func TestUserServiceImpl_QueryUserByID(t *testing.T) {
 	UserServiceImplInit()
 	usi := UserServiceImpl{}
 	user, err := usi.QueryUserByID(1)
 	fmt.Println(user)
+	fmt.Println(err)
+}
+
+func TestUserServiceImpl_QueryUserRespByID(t *testing.T) {
+	UserServiceImplInit()
+	usi := UserServiceImpl{}
+	userInfo, err := usi.QueryUserRespByID(1)
+	fmt.Println(userInfo)
 	fmt.Println(err)
 }
 

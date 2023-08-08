@@ -45,6 +45,28 @@ func (us *UserServiceImpl) QueryUserByID(id uint64) (dao.User, error) {
 	return *user, nil
 }
 
+func (us *UserServiceImpl) QueryUserRespByID(id uint64) (dao.UserResp, error) {
+	userInfo := dao.UserResp{}
+	user, err := us.QueryUserByID(id)
+	if err != nil {
+		log.Println(err.Error())
+		return userInfo, err
+	}
+	log.Println("User queried by ID:", user)
+	userInfo.Id = user.ID             // 用户ID
+	userInfo.Username = user.Username // 用户名
+	userInfo.FollowerCount = 0        // 粉丝数接口待实现
+	userInfo.FollowCount = 0          // 关注数接口待实现
+	userInfo.IsFollow = false         // 是否关注接口待实现
+	userInfo.Avatar = ""              // 用户头像接口待实现
+	userInfo.BackgroundImage = ""     // 背景图片接口待实现
+	userInfo.Signature = ""           // 个人简介接口待实现
+	userInfo.TotalFavorited = 0       // 获赞数接口待实现
+	userInfo.FavoriteCount = 0        // 喜欢数接口待实现
+	userInfo.WorkCount = 0            // 作品数接口待实现
+	return userInfo, nil
+}
+
 // Register 用户注册，返回注册用户ID，状态码和状态信息
 func (us *UserServiceImpl) Register(username string, password string) (uint64, int32, string) {
 	log.Println("Registering user:", username)
