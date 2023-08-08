@@ -30,7 +30,7 @@ func Init() {
 	if err != nil {
 		log.Panicln("err:", err.Error())
 	} else {
-		log.Println("mysql has connected at " + time.Now().Format("2006/01/02 15:04:05.99999999 MST"))
+		log.Println("Database is connected successfully.")
 	}
 	Db.Begin()
 }
