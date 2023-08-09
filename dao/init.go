@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-var Db *gorm.DB
+var db *gorm.DB
 
 func Init() {
 	newLogger := logger.New(
@@ -24,7 +24,7 @@ func Init() {
 
 	dsn := "tiktokDEV:qxy2023@tcp(47.94.162.202:3306)/tiktokLite?charset=utf8mb4&parseTime=True&loc=Local"
 	var err error
-	Db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
 	})
 	if err != nil {
@@ -32,5 +32,5 @@ func Init() {
 	} else {
 		log.Println("Database is connected successfully.")
 	}
-	Db.Begin()
+	db.Begin()
 }
