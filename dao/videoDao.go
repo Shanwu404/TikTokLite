@@ -8,27 +8,27 @@ import (
 type Video struct {
 	ID          uint64
 	AuthorID    uint64
-	PlayURL     uint64
-	CoverURL    uint64
+	PlayURL     string
+	CoverURL    string
 	PublishTime time.Time
 	Title       string
 }
 
 func InsertVideo(video Video) error {
-	if err := db.Create(&video).Error; err != nil {
+	err := db.Create(&video).Error
+	if err != nil {
 		log.Println(err.Error())
-		return err
 	}
-	return nil
+	return err
 }
 
 func QueryVideoByID(id uint64) (Video, error) {
 	video := Video{}
-	if err := db.First(&video, id).Error; err != nil {
+	err := db.Take(&video, id).Error
+	if err != nil {
 		log.Println(err.Error())
-		return video, err
 	}
-	return video, nil
+	return video, err
 }
 
 func QueryVideosByPublishTime(latestTime time.Time, count int) []Video {
