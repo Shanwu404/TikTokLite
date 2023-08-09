@@ -9,7 +9,10 @@ func main() {
 	r := gin.Default()
 	initDeps()
 	//utils.FakeComments(10)
-	err := r.Run()
+
+	initRouter(r)
+
+	err := r.Run() // listen and serve on listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	if err != nil {
 		return
 	}
