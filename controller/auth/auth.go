@@ -70,14 +70,11 @@ func parseKeyFunc(token *jwt.Token) (interface{}, error) {
 }
 
 func osSsignaturedStringValid() bool {
-	if os.Getenv(signatureVarName) == "" {
-		return false
-	}
-	return true
+	return os.Getenv(signatureVarName) != ""
 }
 
 func setTempSignature() error {
-	err := os.Setenv(signatureVarName, string(time.Now().Nanosecond()))
+	err := os.Setenv(signatureVarName, fmt.Sprint((time.Now().Nanosecond())))
 	if err != nil {
 		log.Println("Error executing command:", err)
 		return err
