@@ -22,10 +22,10 @@ CREATE TABLE `users` (
 DROP TABLE IF EXISTS `videos`;
 CREATE TABLE `videos` (
   `id`           bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '视频唯一标识，自增主键',
-  `author_id`    bigint          NOT NULL                COMMENT '视频作者id',
+  `author_id`    bigint UNSIGNED NOT NULL                COMMENT '视频作者id',
   `play_url`     varchar(255)    NOT NULL                COMMENT '视频播放地址',
   `cover_url`    varchar(255)    NOT NULL                COMMENT '视频封面地址',
-  `publish_time` datetime        NOT NULL                COMMENT '发布时间戳',
+  `publish_time` datetime        NOT NULL                COMMENT '发布日期',
   `title`        varchar(255)    DEFAULT NULL            COMMENT '视频名称',
   PRIMARY KEY (`id`),
   INDEX (`author_id`),
@@ -76,9 +76,9 @@ CREATE TABLE `likes` (
 DROP TABLE IF EXISTS `follows`;
 CREATE TABLE `follows`
 (
-  `id`          bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
-  `to_user_id`  bigint NOT NULL                COMMENT '被关注用户id',
-  `follower_id` bigint NOT NULL                COMMENT '执行关注的用户id',
+  `id`          bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `to_user_id`  bigint UNSIGNED NOT NULL                COMMENT '被关注用户id',
+  `follower_id` bigint UNSIGNED NOT NULL                COMMENT '执行关注的用户id',
   PRIMARY KEY (`id`),
   INDEX (`to_user_id`),
   INDEX (`follower_id`)
@@ -92,11 +92,11 @@ CREATE TABLE `follows`
 DROP TABLE IF EXISTS `messages`;
 CREATE TABLE `messages`
 (
-    `id`           bigint       NOT NULL AUTO_INCREMENT COMMENT '消息id，自增主键',
-    `to_user_id`   bigint       NOT NULL COMMENT '接收用户id',
-    `from_user_id` bigint       NOT NULL COMMENT '发送用户id',
-    `content`      varchar(500) NOT NULL COMMENT '消息内容',
-    `create_time`  datetime     NOT NULL COMMENT '消息发送时间',
+    `id`           bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '消息id，自增主键',
+    `to_user_id`   bigint UNSIGNED NOT NULL COMMENT '接收用户id',
+    `from_user_id` bigint UNSIGNED NOT NULL COMMENT '发送用户id',
+    `content`      varchar(500)    NOT NULL COMMENT '消息内容',
+    `create_time`  datetime        NOT NULL COMMENT '消息发送时间',
     PRIMARY KEY (`id`),
     INDEX (`from_user_id`, `to_user_id`)
 ) ENGINE = InnoDB
