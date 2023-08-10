@@ -25,3 +25,9 @@ func TestInsertComment(t *testing.T) {
 	fmt.Println(newComment)
 	fmt.Println(err)
 }
+
+func TestDeleteComment(t *testing.T) {
+	Init()
+	flag := DeleteComment(3)
+	fmt.Println(flag)
+}
