@@ -16,7 +16,7 @@ type UserResponse struct {
 
 type LoginResponse struct {
 	Response
-	UserId uint64 `json:"user_id,omitempty"`
+	UserId int64  `json:"user_id,omitempty"`
 	Token  string `json:"token"`
 }
 
@@ -89,7 +89,7 @@ func (uc *UserController) Login(c *gin.Context) {
 // UserInfo GET /douyin/user/ 用户信息
 func (uc *UserController) UserInfo(c *gin.Context) {
 	userId := c.Query("user_id")
-	id, _ := strconv.ParseUint(userId, 10, 64) // 字符串转uint64
+	id, _ := strconv.ParseInt(userId, 10, 64) // 字符串转int64
 	userInfo, err := uc.userService.QueryUserRespByID(id)
 	if err != nil {
 		c.JSON(http.StatusOK, UserResponse{
