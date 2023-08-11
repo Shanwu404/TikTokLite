@@ -2,7 +2,7 @@ package dao
 
 // 定义用户信息
 type UserResp struct {
-	Id              uint64 `json:"id"`               // 用户ID
+	Id              int64  `json:"id"`               // 用户ID
 	Username        string `json:"username"`         // 用户名
 	FollowCount     int64  `json:"follow_count"`     // 关注数
 	FollowerCount   int64  `json:"follower_count"`   // 粉丝数
