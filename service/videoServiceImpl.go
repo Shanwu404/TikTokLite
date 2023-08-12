@@ -12,15 +12,27 @@ import (
 	"github.com/Shanwu404/TikTokLite/dao"
 )
 
-func GetMultiVideo(latestTime time.Time, count int) []dao.Video {
-	videoInfoList := dao.QueryVideosByPublishTime(latestTime, count)
-	return videoInfoList
+type VideoServiceImpl struct {
 }
 
-func StoreVideo(data []byte, username string, fileName string) error {
+func NewVideoService() VideoService {
+	return &VideoServiceImpl{}
+}
+
+func (vService *VideoServiceImpl) GetMultiVideoBefore(latestTimestamp int64, count int) []VideoParams {
+	latestTime := time.Unix(latestTimestamp, 0)
+	videos := dao.QueryVideosByPublishTime(latestTime, count)
+	videoSlc := make([]VideoParams, 0, len(videos))
+	for i := range videos {
+		videoSlc = append(videoSlc, VideoParams(videos[i]))
+	}
+	return videoSlc
+}
+
+func (vService *VideoServiceImpl) StoreVideo(data []byte, username string, fileName string) error {
 	// 暂时存在本地，TODO:对象存储
 	fileName = time.Now().Truncate(time.Second).Format("20060102150405") +
-		"_" + username + fileName
+		"_" + username + "_" + fileName
 
 	nameLimit := 999
 	for i := 0; i <= nameLimit; i++ {
@@ -58,7 +70,33 @@ func StoreVideo(data []byte, username string, fileName string) error {
 	return nil
 }
 
-func QueryVideoById(videoID uint64) dao.Video {
-	video, _ := dao.QueryVideoByID(videoID)
+func (vService *VideoServiceImpl) InsertVideosTable(video *VideoParams) error {
+	retry := 5
+	delay := time.Second
+	var err error
+	for i := 0; i < retry; i++ {
+		err = dao.InsertVideo(dao.Video(*video))
+		if err != nil {
+			time.Sleep(delay)
+		} else {
+			return nil
+		}
+	}
+	return err
+}
+
+// TODO: 分页查询
+func (vService *VideoServiceImpl) GetVideoListByUserId(AuthorID int64) []VideoParams {
+	videos := dao.QueryVideosByAuthorId(AuthorID)
+	results := make([]VideoParams, 0, len(videos))
+	for i := range videos {
+		results = append(results, VideoParams(videos[i]))
+	}
+	return results
+}
+
+func (vService *VideoServiceImpl) QueryVideoById(videoID int64) VideoParams {
+	videoFromDao, _ := dao.QueryVideoByID(videoID)
+	video := VideoParams(videoFromDao)
 	return video
 }

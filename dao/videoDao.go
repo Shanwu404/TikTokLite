@@ -6,8 +6,8 @@ import (
 )
 
 type Video struct {
-	ID          uint64
-	AuthorID    uint64
+	ID          int64
+	AuthorID    int64
 	PlayURL     string
 	CoverURL    string
 	PublishTime time.Time
@@ -22,7 +22,7 @@ func InsertVideo(video Video) error {
 	return err
 }
 
-func QueryVideoByID(id uint64) (Video, error) {
+func QueryVideoByID(id int64) (Video, error) {
 	video := Video{}
 	err := db.Take(&video, id).Error
 	if err != nil {
@@ -33,15 +33,16 @@ func QueryVideoByID(id uint64) (Video, error) {
 
 func QueryVideosByPublishTime(latestTime time.Time, count int) []Video {
 	videos := make([]Video, 0, count)
-	if err := db.Order("publish_time desc").
+	if err := db.
 		Where("publish_time < ?", latestTime).
+		Order("publish_time desc").
 		Limit(count).Find(&videos).Error; err != nil {
 		log.Println(err.Error())
 	}
 	return videos
 }
 
-func QueryVideosByAuthorId(authorId uint64) []Video {
+func QueryVideosByAuthorId(authorId int64) []Video {
 	var videos = make([]Video, 0)
 	if err := db.Where("author_id = ?", authorId).Find(&videos).Error; err != nil {
 		log.Println(err.Error())
