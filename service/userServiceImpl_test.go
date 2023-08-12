@@ -27,18 +27,10 @@ func TestUserServiceImpl_QueryUserByID(t *testing.T) {
 	fmt.Println(err)
 }
 
-func TestUserServiceImpl_QueryUserRespByID(t *testing.T) {
-	UserServiceImplInit()
-	usi := UserServiceImpl{}
-	userInfo, err := usi.QueryUserRespByID(1)
-	fmt.Println(userInfo)
-	fmt.Println(err)
-}
-
 func TestUserServiceImpl_Register(t *testing.T) {
 	UserServiceImplInit()
 	usi := UserServiceImpl{}
-	id, code, message := usi.Register("Lqs", "1000")
+	id, code, message := usi.Register("Lqs1", "password")
 	fmt.Println(id, code, message)
 }
 

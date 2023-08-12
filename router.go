@@ -23,7 +23,7 @@ func NewRouter() *gin.Engine {
 
 	apiRouter.POST("/user/register/", userController.Register)
 	apiRouter.POST("/user/login/", userController.Login)
-	apiRouter.GET("/user/", userController.UserInfo)
+	apiRouter.GET("/user/", userController.GetUserInfo)
 
 	return r
 

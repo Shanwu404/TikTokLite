@@ -9,9 +9,6 @@ type UserService interface {
 	// QueryUserByID 根据id获取User对象
 	QueryUserByID(id int64) (dao.User, error)
 
-	// QueryUserRespByID 根据id获取UserResp对象
-	QueryUserRespByID(id int64) (dao.UserResp, error)
-
 	// Register 用户注册
 	Register(username string, password string) (int64, int32, string)
 
