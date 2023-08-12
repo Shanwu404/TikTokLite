@@ -14,6 +14,17 @@ type Video struct {
 	Title       string
 }
 
+type VideoDetail struct {
+	Id            int64
+	AuthorID      int64
+	PlayUrl       string
+	CoverUrl      string
+	FavoriteCount int64
+	CommentCount  int64
+	IsFavorite    bool
+	Title         string
+}
+
 func InsertVideo(video Video) error {
 	err := db.Create(&video).Error
 	if err != nil {
