@@ -14,3 +14,8 @@ type UserResp struct {
 	WorkCount       int64  `json:"work_count"`       // 作品数
 	FavoriteCount   int64  `json:"favorite_count"`   // 喜欢数
 }
+
+type Follow struct {
+	UserId     int64 `gorm:"column:user_id"`
+	FollowerId int64 `gorm:"column:follower_id"`
+}
