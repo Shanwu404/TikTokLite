@@ -65,11 +65,8 @@ func (us *UserServiceImpl) Register(username string, password string) (int64, in
 	}
 
 	log.Println("Registering user:", username)
-	user, err := dao.QueryUserByUsername(username)
-	if err != nil {
-		log.Println(err)
-		return -1, 1, "User registration failed!"
-	}
+	user, _ := dao.QueryUserByUsername(username)
+
 	if user != nil {
 		return -1, 1, "User already exist!"
 	}
