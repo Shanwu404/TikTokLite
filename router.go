@@ -9,8 +9,8 @@ import (
 
 func NewRouter() *gin.Engine {
 	r := gin.Default()
-
 	apiRouter := r.Group("/douyin")
+	apiRouter.Static("tiktok", "./videos") //测试用。配置静态资源路径
 
 	userService := service.NewUserService()                     // 实例化 UserService
 	userController := controller.NewUserController(userService) // 实例化 UserController
