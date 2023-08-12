@@ -17,8 +17,15 @@ type Response struct {
 	StatusMsg  string `json:"status_msg"`
 }
 
+// TODO:检查token里含有特殊字符如% 是否需要特殊处理或者统一使用合适的编解码方法
 func Auth(c *gin.Context) {
-	signaturedString := c.Query("token")
+	var signaturedString string
+	switch c.Request.Method {
+	case "GET":
+		signaturedString = c.GetString("token")
+	case "POST":
+		signaturedString = c.PostForm("token")
+	}
 	if len(signaturedString) == 0 {
 		c.Abort()
 		c.JSON(
@@ -70,14 +77,11 @@ func parseKeyFunc(token *jwt.Token) (interface{}, error) {
 }
 
 func osSsignaturedStringValid() bool {
-	if os.Getenv(signatureVarName) == "" {
-		return false
-	}
-	return true
+	return os.Getenv(signatureVarName) != ""
 }
 
 func setTempSignature() error {
-	err := os.Setenv(signatureVarName, string(time.Now().Nanosecond()))
+	err := os.Setenv(signatureVarName, fmt.Sprint((time.Now().Nanosecond())))
 	if err != nil {
 		log.Println("Error executing command:", err)
 		return err
