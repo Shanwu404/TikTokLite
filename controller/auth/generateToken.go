@@ -19,7 +19,7 @@ func GenerateToken(name string, id int64) (string, error) {
 	log.Printf("Generating token for name:%v id:%v\n", name, id)
 
 	var (
-		SIGNINGKEY = []byte(os.Getenv(signatureVarName)) // 密钥
+		SIGNINGKEY = []byte(os.Getenv("TIKTOKLITESIGNINGKEY")) // 密钥
 		claims     = &customClaims{
 			name,
 			id,

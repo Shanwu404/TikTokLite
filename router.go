@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/Shanwu404/TikTokLite/controller"
+	"github.com/Shanwu404/TikTokLite/controller/auth"
 	"github.com/Shanwu404/TikTokLite/service"
-	"github.com/Shanwu404/TikTokLite/utils/auth"
 	"github.com/gin-gonic/gin"
 )
 
