@@ -21,7 +21,9 @@ func Auth(c *gin.Context) {
 	case "GET":
 		signaturedString = c.GetString("token")
 	case "POST":
-		signaturedString = c.PostForm("token")
+		json := make(map[string]any)
+		c.BindJSON(&json)
+		signaturedString, _ = json["token"].(string)
 	}
 	if len(signaturedString) == 0 {
 		c.Abort()
