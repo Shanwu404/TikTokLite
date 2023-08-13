@@ -120,6 +120,14 @@ func (us *UserServiceImpl) Login(username string, password string) (int32, strin
 	}
 }
 
+// IsUserIdExist 查询用户ID是否存在
+func (us *UserServiceImpl) IsUserIdExist(id int64) bool {
+	log.Println("Checking if user ID exists:", id)
+	isExisted := dao.IsUserIdExist(id)
+	log.Printf("User ID %d exists: %t\n", id, isExisted)
+	return isExisted
+}
+
 func isValidUsername(username string) bool {
 	// 用户名长度限制为3-12个字符
 	const minUsernameLength = 3
