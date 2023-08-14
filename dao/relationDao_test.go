@@ -5,9 +5,10 @@ import (
 	"testing"
 )
 
+// TestInsertFollow 测试增加关注关系
 func TestInsertFollow(t *testing.T) {
 	Init()
-	err := InsertFollow(2000, 1001)
+	err := InsertFollow(1000, 1001)
 	fmt.Println(err)
 }
 
@@ -17,34 +18,37 @@ func TestDeleteFollow(t *testing.T) {
 	fmt.Println(err)
 }
 
-func TestJudgeIsFollowById(t *testing.T) {
+func TestIsFollowed(t *testing.T) {
 	Init()
-	err := JudgeIsFollowById(1000, 1001)
-	fmt.Println(err)
-}
-
-func TestQueryFollowsIdByUserId(t *testing.T) {
-	Init()
-	follows, err := QueryFollowsIdByUserId(1000)
-	fmt.Println(follows)
+	isFollow, err := IsFollowed(1000, 1001)
+	fmt.Println(isFollow)
 	fmt.Println(err)
 }
 
 func TestQueryFollowersIdByUserId(t *testing.T) {
 	Init()
-	followers, err := QueryFollowersIdByUserId(1000)
-	fmt.Println(followers)
+	followersId, err := QueryFollowersIdByUserId(1001)
+	fmt.Println(followersId)
+	fmt.Println(err)
+}
+
+func TestFollowsIdByUserId(t *testing.T) {
+	Init()
+	followsId, err := QueryFollowsIdByUserId(1000)
+	fmt.Println(followsId)
 	fmt.Println(err)
 }
 
 func TestCountFollowers(t *testing.T) {
 	Init()
-	cnt := CountFollowers(1000)
-	fmt.Println(cnt)
+	count, err := CountFollowers(1001)
+	fmt.Println(count)
+	fmt.Println(err)
 }
 
-func TestCountFollowees(t *testing.T) {
+func TestCountFollows(t *testing.T) {
 	Init()
-	cnt := CountFollowees(1000)
-	fmt.Println(cnt)
+	count, err := CountFollows(1000)
+	fmt.Println(count)
+	fmt.Println(err)
 }

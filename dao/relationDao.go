@@ -4,8 +4,8 @@ import (
 	"log"
 )
 
-// 定义用户信息
-type UserResp struct {
+// 定义用户信息结构体
+type UserInfo struct {
 	Id              int64  `json:"id"`               // 用户ID
 	Username        string `json:"username"`         // 用户名
 	FollowCount     int64  `json:"follow_count"`     // 关注数
@@ -19,88 +19,99 @@ type UserResp struct {
 	FavoriteCount   int64  `json:"favorite_count"`   // 喜欢数
 }
 
+// 定义朋友信息结构体
+type FriendInfo struct {
+	UserInfo UserInfo `json:"user_info"` // 朋友用户信息
+	Message  string   `json:"message"`   // 朋友消息
+	MsgType  int64    `json:"msg_type"`  // 消息类型
+}
+
+// 定义关注关系结构体
 type Follow struct {
-	UserId     int64 `gorm:"column:to_user_id"`  //被关注的人
-	FollowerId int64 `gorm:"column:follower_id"` //点关注的人
+	ToUserId   int64 `gorm:"column:to_user_id"`  // 被关注用户ID
+	FollowerId int64 `gorm:"column:follower_id"` // 执行关注的用户ID
 }
 
-type FriendResp struct {
-	Id             int64  `json:"id"`
-	Name           string `json:"name"`
-	FollowCount    int64  `json:"follow_count"`
-	FollowerCount  int64  `json:"follower_count"`
-	IsFollow       bool   `json:"is_follow"`
-	Avatar         string `json:"avatar"`
-	TotalFavorited int64  `json:"total_favorited"`
-	WorkCount      int64  `json:"work_count"`
-	FavoriteCount  int64  `json:"favorite_count"`
-	Message        string `json:"message"`
-	//MsgType        int64  `json:"msgType"`
-}
-
-/*关注关系*/
-// 增加关注关系，登录进来的用户（userid) 关注别人（followId)
+// InsertFollow 增加follow关系 userId 关注 followId
 func InsertFollow(userId int64, followId int64) error {
 	follow := Follow{
-		UserId:     followId,
-		FollowerId: userId,
+		ToUserId:   followId, // 被关注用户ID
+		FollowerId: userId,   // 执行关注的用户ID
 	}
 	if err := db.Table("follows").Create(&follow).Error; err != nil {
-		log.Println(err.Error())
-		log.Println("the following operation fails")
-
-		return err
+		return err // 如果插入出错，则返回错误
 	}
+	log.Println("Insert follow success")
 	return nil
 }
 
-// 删除关注关系 userId 不再关注 followId
+// DeleteFollow 删除follow关系 userId 关注 followId
 func DeleteFollow(userId int64, followId int64) error {
-	follow := Follow{}
-	if err := db.Table("follows").Where("to_user_id = ? and follower_id = ?", followId, userId).Delete(&follow).Error; err != nil {
-		log.Println(err.Error())
+	err := db.Table("follows").Where("to_user_id = ? and follower_id = ?", followId, userId).Delete(&Follow{}).Error
+	if err != nil {
+		log.Println("Delete follow error: ", err.Error())
 		return err
 	}
+	log.Println("Delete follow success")
 	return nil
 }
 
-/*关注列表*/
-// JudgeIsFollowById 查询是否已关注 用户id1是否关注id2用户
-func JudgeIsFollowById(id1 int64, id2 int64) bool { // 判断用户id1是否关注id2用户
+// IsFollowed 查询是否已关注 userId 关注 followId
+func IsFollowed(userId int64, followId int64) (bool, error) {
 	var count int64
-	db.Model(&Follow{}).Where("to_user_id = ? and follower_id = ?", id2, id1).Count(&count)
-	return count > 0
+	err := db.Model(&Follow{}).Where("follower_id = ? and to_user_id = ?", userId, followId).Count(&count).Error
+	if err != nil {
+		log.Println("Judge is follow error: ", err.Error())
+		return false, err
+	}
+	log.Println("Judge is follow by UserId success")
+	return count > 0, nil
+}
+
+// QueryFollowersIdByUserId 查询用户粉丝id列表
+func QueryFollowersIdByUserId(userId int64) ([]int64, error) {
+	var followersId []int64
+	err := db.Table("follows").Where("to_user_id = ?", userId).Pluck("follower_id", &followersId).Error
+	if err != nil {
+		log.Println("Query followers error: ", err.Error())
+		return nil, err
+	}
+	log.Println("Query followers Id by UserId success")
+	return followersId, nil
 }
 
 // QueryFollowsIdByUserId 查询用户关注id列表
 func QueryFollowsIdByUserId(userId int64) ([]int64, error) {
-	followIds := make([]int64, 0)
-	if err := db.Table("follows").Select("to_user_id").Where("follower_id = ?", userId).Find(&followIds).Error; nil != err {
+	var followsId []int64
+	err := db.Table("follows").Where("follower_id = ?", userId).Pluck("to_user_id", &followsId).Error
+	if err != nil {
+		log.Println("Query follows error: ", err.Error())
 		return nil, err
 	}
-	return followIds, nil
+	log.Println("Query follows success")
+	return followsId, nil
 }
 
-/*粉丝列表*/
-// QueryFollowersIdByUserId 查询用户粉丝id列表
-func QueryFollowersIdByUserId(userId int64) ([]int64, error) {
-	followerIds := make([]int64, 0)
-	if err := db.Table("follows").Select("follower_id").Where("to_user_id = ?", userId).Find(&followerIds).Error; nil != err {
-		return nil, err
+// CountFollowers 统计用户粉丝数
+func CountFollowers(userId int64) (int64, error) {
+	var count int64
+	err := db.Table("follows").Where("to_user_id = ?", userId).Count(&count).Error
+	if err != nil {
+		log.Println("Count followers error: ", err.Error())
+		return 0, err
 	}
-	return followerIds, nil
+	log.Println("Count followers success")
+	return count, nil
 }
 
-// CountFollowers 统计用户的粉丝数
-func CountFollowers(id int64) int64 {
+// CountFollows 统计用户关注数
+func CountFollows(userId int64) (int64, error) {
 	var count int64
-	db.Model(&Follow{}).Where("to_user_id = ?", id).Count(&count)
-	return count
-}
-
-// CountFollowees 统计用户的关注数
-func CountFollowees(id int64) int64 {
-	var count int64
-	db.Model(&Follow{}).Where("follower_id = ?", id).Count(&count)
-	return count
+	err := db.Table("follows").Where("follower_id = ?", userId).Count(&count).Error
+	if err != nil {
+		log.Println("Count follows error: ", err.Error())
+		return 0, err
+	}
+	log.Println("Count follows success")
+	return count, nil
 }
