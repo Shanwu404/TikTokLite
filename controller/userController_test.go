@@ -1,38 +1,34 @@
 package controller
 
 import (
-	"fmt"
-	"io"
-	"log"
-	"net/http"
 	"testing"
 )
 
-func SendRequest(method string, url string, Body io.Reader) {
-	client := &http.Client{}
-	req, err := http.NewRequest(method, url, Body)
-	if err != nil {
-		log.Fatal("NewRequest failed", err)
-	}
-	req.Header.Add("User-Agent", "Apifox/1.0.0 (https://apifox.com)")
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal("Do failed", err)
-		return
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			return
-		}
-	}(resp.Body)
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal("ReadAll failed", err)
-		return
-	}
-	fmt.Println(string(body))
-}
+//func SendRequest(method string, url string, Body io.Reader) {
+//	client := &http.Client{}
+//	req, err := http.NewRequest(method, url, Body)
+//	if err != nil {
+//		log.Fatal("NewRequest failed", err)
+//	}
+//	req.Header.Add("User-Agent", "Apifox/1.0.0 (https://apifox.com)")
+//	resp, err := client.Do(req)
+//	if err != nil {
+//		log.Fatal("Do failed", err)
+//		return
+//	}
+//	defer func(Body io.ReadCloser) {
+//		err := Body.Close()
+//		if err != nil {
+//			return
+//		}
+//	}(resp.Body)
+//	body, err := io.ReadAll(resp.Body)
+//	if err != nil {
+//		log.Fatal("ReadAll failed", err)
+//		return
+//	}
+//	fmt.Println(string(body))
+//}
 
 func TestRegister(t *testing.T) {
 	// 用户注册——成功

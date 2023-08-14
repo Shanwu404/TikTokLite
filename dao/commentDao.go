@@ -35,10 +35,10 @@ func InsertComment(comment Comment) (Comment, error) {
 // DeleteComment 根据评论id删除评论
 func DeleteComment(id int64) bool {
 	var comment Comment
-	if err := Db.Where("id = ?", id).First(&comment).Error; err != nil {
+	if err := db.Where("id = ?", id).First(&comment).Error; err != nil {
 		log.Println(err.Error())
 		return false
 	}
-	Db.Delete(&comment)
+	db.Delete(&comment)
 	return true
 }

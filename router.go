@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/Shanwu404/TikTokLite/controller"
-	"github.com/Shanwu404/TikTokLite/controller/auth"
+	"github.com/Shanwu404/TikTokLite/middleware/auth"
 	"github.com/Shanwu404/TikTokLite/service"
 	"github.com/gin-gonic/gin"
 )
@@ -25,6 +25,8 @@ func NewRouter() *gin.Engine {
 	apiRouter.POST("/user/login/", userController.Login)
 	apiRouter.GET("/user/", userController.UserInfo)
 
+	apiRouter.POST("/comment/action/", auth.Auth, controller.CommentAction)
+	apiRouter.GET("/comment/list/", auth.Auth, controller.CommentList)
 	return r
 
 }
