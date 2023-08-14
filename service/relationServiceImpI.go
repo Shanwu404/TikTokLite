@@ -69,7 +69,7 @@ func (RelationServiceImpl) GetFollowList(userId int64) ([]dao.UserResp, error) {
 		return followList, err
 	}
 	for _, followId := range followIds {
-		followInfo, err := usi.QueryUserRespByID(uint64(followId))
+		followInfo, err := usi.QueryUserRespByID(followId)
 		if nil != err {
 			return followList, err
 		}
@@ -92,7 +92,7 @@ func (RelationServiceImpl) GetFollowerList(userId int64) ([]dao.UserResp, error)
 	}
 
 	for _, followerId := range followerIds {
-		followerInfo, err := usi.QueryUserRespByID(uint64(followerId))
+		followerInfo, err := usi.QueryUserRespByID(followerId)
 		isFollow := rsi.JudgeIsFollowById(userId, followerId)
 		if nil != err {
 			return followerList, err
@@ -121,7 +121,7 @@ func (RelationServiceImpl) GetFriendList(userId int64) ([]dao.FriendResp, error)
 		return friendList, err
 	}
 	for _, followId := range followIds {
-		tmpFriendInfo, err := usi.QueryUserRespByID(uint64(followId))
+		tmpFriendInfo, err := usi.QueryUserRespByID(followId)
 		friendResp := dao.FriendResp{}
 		// 判断是否回关，回关了即为好友
 		isFollow := rsi.JudgeIsFollowById(followId, userId)
