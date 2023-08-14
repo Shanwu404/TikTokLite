@@ -27,6 +27,9 @@ func NewRouter() *gin.Engine {
 
 	apiRouter.POST("/comment/action/", auth.Auth, controller.CommentAction)
 	apiRouter.GET("/comment/list/", auth.Auth, controller.CommentList)
+
+	apiRouter.POST("/message/action/", auth.Auth, controller.MessageAction)
+	apiRouter.GET("/message/chat/", auth.Auth, controller.MessageList)
 	return r
 
 }
