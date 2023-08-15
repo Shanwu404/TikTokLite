@@ -1,13 +1,14 @@
 package controller
 
 import (
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/service"
 	"github.com/Shanwu404/TikTokLite/utils"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 type CommentListResponse struct {
@@ -23,7 +24,6 @@ type CommentActionResponse struct {
 // CommentAction POST /douyin/comment/action/ 评论操作
 func CommentAction(c *gin.Context) {
 	csi := service.CommentServiceImpl{}
-	usi := service.UserServiceImpl{}
 
 	actionType := c.Query("action_type")
 	if actionType == "1" {
@@ -48,7 +48,8 @@ func CommentAction(c *gin.Context) {
 			})
 			return
 		}
-		userInfo, _ := usi.QueryUserRespByID(userId)
+		userInfo := UserInfo{Id: userId}
+		completeUserInfo(&userInfo)
 		c.JSON(http.StatusOK, CommentActionResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 			CommentInfo: CommentInfo{
@@ -70,7 +71,6 @@ func CommentAction(c *gin.Context) {
 
 // CommentList GET /douyin/comment/list/ 评论列表
 func CommentList(c *gin.Context) {
-	usi := service.UserServiceImpl{}
 	csi := service.CommentServiceImpl{}
 
 	id := c.Query("video_id")
@@ -78,10 +78,8 @@ func CommentList(c *gin.Context) {
 	comments := csi.QueryCommentsByVideoId(videoId)
 	var commonList []CommentInfo
 	for _, comment := range comments {
-		user, err := usi.QueryUserRespByID(comment.UserId)
-		if err != nil {
-			continue
-		}
+		user := UserInfo{Id: comment.UserId}
+		completeUserInfo(&user)
 		commonList = append(commonList, CommentInfo{
 			Id:         comment.Id,
 			User:       user,
@@ -94,4 +92,24 @@ func CommentList(c *gin.Context) {
 		CommentList: commonList,
 	})
 	return
+}
+
+func completeUserInfo(userinfo *UserInfo) {
+	usi := service.NewUserService()
+	vsi := service.NewVideoService()
+
+	brief, _ := usi.QueryUserByID(userinfo.Id)
+	*userinfo = UserInfo{
+		Id:              brief.ID,
+		Username:        brief.Username,
+		FollowCount:     110,   // followService提供
+		FollowerCount:   12000, // followService提供
+		IsFollow:        false, // followService提供
+		Avatar:          "",
+		BackgroundImage: "",
+		Signature:       "唯一不变是永远的改变",
+		TotalFavorited:  9876543210, // likeService提供
+		WorkCount:       int64(len(vsi.GetVideoListByUserId(userinfo.Id))),
+		FavoriteCount:   123456, // likeService提供
+	}
 }
