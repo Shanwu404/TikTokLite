@@ -41,14 +41,14 @@ type douyinPublishListResponse struct {
 }
 
 type Video struct {
-	ID            int64  `json:"id"`
-	Author        User   `json:"author"`
-	PlayURL       string `json:"play_url"`
-	CoverURL      string `json:"cover_url"`
-	FavoriteCount int64  `json:"favorite_count"`
-	CommentCount  int64  `json:"comment_count"`
-	IsFavorite    bool   `json:"is_favorite"`
-	Title         string `json:"title"`
+	ID            int64    `json:"id"`
+	Author        UserInfo `json:"author"`
+	PlayURL       string   `json:"play_url"`
+	CoverURL      string   `json:"cover_url"`
+	FavoriteCount int64    `json:"favorite_count"`
+	CommentCount  int64    `json:"comment_count"`
+	IsFavorite    bool     `json:"is_favorite"`
+	Title         string   `json:"title"`
 }
 
 func feedParseAndValidateParams(c *gin.Context) (douyinFeedRequest, bool) {
