@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/Shanwu404/TikTokLite/dao"
-	"time"
 )
 
 type Response struct {
@@ -18,5 +17,5 @@ type CommentInfo struct {
 	Id         int64
 	User       dao.UserResp
 	Content    string
-	CreateDate time.Time
+	CreateDate string
 }

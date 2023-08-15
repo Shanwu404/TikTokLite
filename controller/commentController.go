@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/service"
+	"github.com/Shanwu404/TikTokLite/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -54,7 +55,7 @@ func CommentAction(c *gin.Context) {
 				Id:         commentId,
 				User:       userInfo,
 				Content:    content,
-				CreateDate: time.Now(),
+				CreateDate: utils.TimeToStr(t),
 			},
 		})
 		return
@@ -85,7 +86,7 @@ func CommentList(c *gin.Context) {
 			Id:         comment.Id,
 			User:       user,
 			Content:    comment.Content,
-			CreateDate: time.Now(),
+			CreateDate: utils.TimeToStr(comment.CreateDate),
 		})
 	}
 	c.JSON(http.StatusOK, CommentListResponse{
