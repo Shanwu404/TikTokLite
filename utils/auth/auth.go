@@ -19,7 +19,7 @@ func Auth(c *gin.Context) {
 	var signaturedString string
 	switch c.Request.Method {
 	case "GET":
-		signaturedString = c.GetString("token")
+		signaturedString = c.Query("token")
 	case "POST":
 		signaturedString = c.PostForm("token")
 	}
