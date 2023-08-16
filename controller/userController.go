@@ -1,10 +1,12 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/Shanwu404/TikTokLite/service"
+	"github.com/Shanwu404/TikTokLite/utils/auth"
 	"github.com/gin-gonic/gin"
 )
 
@@ -53,9 +55,12 @@ func (uc *UserController) Register(c *gin.Context) {
 		})
 		return
 	} else {
+		token, _ := auth.GenerateToken(username, userId)
+		token = "token=" + token
 		c.JSON(http.StatusOK, LoginResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 			UserId:   userId,
+			Token:    token,
 		})
 		return
 	}
@@ -77,9 +82,12 @@ func (uc *UserController) Login(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error occurred while retrieving user information"})
 			return
 		}
+		token, _ := auth.GenerateToken(user.Username, user.ID)
+		token = "token=" + token
 		c.JSON(http.StatusOK, LoginResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 			UserId:   user.ID,
+			Token:    token,
 		})
 		return
 	}
@@ -96,6 +104,9 @@ func (uc *UserController) GetUserInfo(c *gin.Context) {
 		})
 		return
 	}
+	currentUserId := c.GetInt64("id")
+	log.Println("currentUserId: ", currentUserId)
+
 	c.JSON(http.StatusOK, UserResponse{
 		Response: Response{StatusCode: 0},
 		UserInfo: UserInfo{
