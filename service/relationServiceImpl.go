@@ -6,6 +6,12 @@ import (
 	"github.com/Shanwu404/TikTokLite/dao"
 )
 
+func NewRelationService() *RelationServiceImpl {
+	return &RelationServiceImpl{
+		UserService: &UserServiceImpl{},
+	}
+}
+
 type RelationServiceImpl struct {
 	UserService *UserServiceImpl
 }
