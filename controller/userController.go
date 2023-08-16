@@ -8,6 +8,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type UserController struct {
+	userService service.UserService
+}
+
+func NewUserController() *UserController {
+	return &UserController{
+		userService: service.NewUserService(),
+	}
+}
+
 type UserResponse struct {
 	Response
 	UserInfo UserInfo `json:"user_info"`
@@ -27,16 +37,6 @@ type LoginRequest struct {
 type RegisterRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-}
-
-type UserController struct {
-	userService service.UserService
-}
-
-func NewUserController(userService service.UserService) *UserController {
-	return &UserController{
-		userService: userService,
-	}
 }
 
 // Register POST /douyin/user/register/ 用户注册
