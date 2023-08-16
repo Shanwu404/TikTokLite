@@ -24,6 +24,9 @@ type CommentActionResponse struct {
 func CommentAction(c *gin.Context) {
 	csi := service.CommentServiceImpl{}
 	usi := service.UserServiceImpl{}
+	rsi := service.RelationServiceImpl{}
+	vsi := service.VideoServiceImpl{}
+	lsi := service.LikeServiceImpl{}
 
 	actionType := c.Query("action_type")
 	if actionType == "1" {
@@ -33,6 +36,7 @@ func CommentAction(c *gin.Context) {
 		// 获取当前视频
 		id := c.Query("video_id")
 		videoId, _ := strconv.ParseInt(id, 10, 64)
+		video := vsi.QueryVideoById(videoId)
 		t := time.Now()
 		comment := dao.Comment{
 			UserId:     userId,
@@ -48,12 +52,24 @@ func CommentAction(c *gin.Context) {
 			})
 			return
 		}
-		userInfo, _ := usi.QueryUserRespByID(userId)
+		user, _ := usi.QueryUserByID(userId)
+		followCount, _ := rsi.CountFollows(user.ID)
+		followerCount, _ := rsi.CountFollowers(user.ID)
+		isFollowed, _ := rsi.IsFollowed(user.ID, video.AuthorID)
+		favoriteCount, _ := lsi.LikeVideoCount(user.ID)
 		c.JSON(http.StatusOK, CommentActionResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 			CommentInfo: CommentInfo{
-				Id:         commentId,
-				User:       userInfo,
+				Id: commentId,
+				User: UserInfo{
+					Id:            user.ID,
+					Username:      user.Username,
+					FollowCount:   followCount,
+					FollowerCount: followerCount,
+					IsFollow:      isFollowed,
+					WorkCount:     int64(len(vsi.GetVideoListByUserId(user.ID))),
+					FavoriteCount: favoriteCount,
+				},
 				Content:    content,
 				CreateDate: utils.TimeToStr(t),
 			},
@@ -72,19 +88,35 @@ func CommentAction(c *gin.Context) {
 func CommentList(c *gin.Context) {
 	usi := service.UserServiceImpl{}
 	csi := service.CommentServiceImpl{}
+	rsi := service.RelationServiceImpl{}
+	vsi := service.VideoServiceImpl{}
+	lsi := service.LikeServiceImpl{}
 
 	id := c.Query("video_id")
 	videoId, _ := strconv.ParseInt(id, 10, 64)
+	video := vsi.QueryVideoById(videoId)
 	comments := csi.QueryCommentsByVideoId(videoId)
 	var commonList []CommentInfo
 	for _, comment := range comments {
-		user, err := usi.QueryUserRespByID(comment.UserId)
+		user, err := usi.QueryUserByID(comment.UserId)
 		if err != nil {
 			continue
 		}
+		followCount, _ := rsi.CountFollows(user.ID)
+		followerCount, _ := rsi.CountFollowers(user.ID)
+		isFollowed, _ := rsi.IsFollowed(user.ID, video.AuthorID)
+		favoriteCount, _ := lsi.LikeVideoCount(user.ID)
 		commonList = append(commonList, CommentInfo{
-			Id:         comment.Id,
-			User:       user,
+			Id: comment.Id,
+			User: UserInfo{
+				Id:            user.ID,
+				Username:      user.Username,
+				FollowCount:   followCount,
+				FollowerCount: followerCount,
+				IsFollow:      isFollowed,
+				WorkCount:     int64(len(vsi.GetVideoListByUserId(user.ID))),
+				FavoriteCount: favoriteCount,
+			},
 			Content:    comment.Content,
 			CreateDate: utils.TimeToStr(comment.CreateDate),
 		})
