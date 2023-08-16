@@ -18,10 +18,10 @@ func TestRelationServiceImpl_Follow(t *testing.T) {
 	fmt.Println(flag, err)
 }
 
-func TestRelationServiceImpl_Unfollow(t *testing.T) {
+func TestRelationServiceImpl_UnFollow(t *testing.T) {
 	RelationServiceInit()
 	rsi := RelationServiceImpl{}
-	flag, err := rsi.Unfollow(1000, 2300)
+	flag, err := rsi.UnFollow(1000, 2300)
 	fmt.Println(flag, err)
 }
 
