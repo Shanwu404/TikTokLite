@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/service"
 
 	"github.com/gin-gonic/gin"
@@ -40,9 +39,12 @@ func (vc *videoController) Feed(c *gin.Context) {
 		nextTimeInt = videosWithAuthorID[len(videosWithAuthorID)-1].PublishTime.Unix()
 	}
 	videoList := make([]Video, len(videosWithAuthorID))
+
+	// TODO: Goroutine
 	for i := range videosWithAuthorID {
-		authorInfo, _ := vc.userService.QueryUserRespByID(videosWithAuthorID[i].AuthorID)
-		vc.combineVideoAndAuthor(&videosWithAuthorID[i], &authorInfo, &videoList[i])
+		authorInfo := UserInfo{Id: videosWithAuthorID[i].AuthorID}
+		vc.completeUserInfo(&authorInfo)
+		combineVideoAndAuthor(&videosWithAuthorID[i], &authorInfo, &videoList[i])
 	}
 	log.Println(videoList)
 	c.JSON(http.StatusOK, douyinFeedResponse{
@@ -98,10 +100,11 @@ func (vc *videoController) PublishList(c *gin.Context) {
 	}
 
 	userWorks := vc.videoService.GetVideoListByUserId(reqParams.UserID)
-	authorInfo, _ := vc.userService.QueryUserRespByID(userWorks[0].AuthorID)
+	authorInfo := UserInfo{Id: userWorks[0].AuthorID} // 同一个用户的视频，所以作者信息是一样的
+	vc.completeUserInfo(&authorInfo)
 	videoList := make([]Video, 0, len(userWorks))
 	for i := range userWorks {
-		vc.combineVideoAndAuthor(&userWorks[i], &authorInfo, &videoList[i])
+		combineVideoAndAuthor(&userWorks[i], &authorInfo, &videoList[i])
 	}
 	c.JSON(http.StatusOK, douyinPublishListResponse{
 		Response:  Response{0, "Get Publish List."},
@@ -113,15 +116,32 @@ func (vc *videoController) PublishList(c *gin.Context) {
 // --------------------------------
 // 这部分工具函数也要跟随组装数据代码一起放入单独一层
 
-func (vc *videoController) combineVideoAndAuthor(video *service.VideoParams, author *dao.UserResp, result *Video) {
+func combineVideoAndAuthor(video *service.VideoParams, author *UserInfo, result *Video) {
 	*result = Video{
 		ID:            video.ID,
-		Author:        User{*author},
+		Author:        *author,
 		PlayURL:       video.PlayURL,
 		CoverURL:      video.CoverURL,
 		FavoriteCount: 1000,
 		CommentCount:  1000,
 		IsFavorite:    true,
 		Title:         video.Title,
+	}
+}
+
+func (vc *videoController) completeUserInfo(userinfo *UserInfo) {
+	brief, _ := vc.userService.QueryUserByID(userinfo.Id)
+	*userinfo = UserInfo{
+		Id:              brief.ID,
+		Username:        brief.Username,
+		FollowCount:     110,   // followService提供
+		FollowerCount:   12000, // followService提供
+		IsFollow:        false, // followService提供
+		Avatar:          "",
+		BackgroundImage: "",
+		Signature:       "唯一不变是永远的改变",
+		TotalFavorited:  9876543210, // likeService提供
+		WorkCount:       int64(len(vc.videoService.GetVideoListByUserId(userinfo.Id))),
+		FavoriteCount:   123456, // likeService提供
 	}
 }

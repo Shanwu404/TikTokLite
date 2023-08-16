@@ -11,20 +11,6 @@ type VideoParams struct {
 	Title       string
 }
 
-// 后面要移入用户模块
-type UserParams struct {
-	ID              int64
-	Name            string
-	FollowCount     int64
-	FollowerCount   int64
-	Avatar          string
-	BackgroundImage string
-	Signature       string
-	TotalFavorited  string
-	WorkCount       int64
-	FavoriteCount   int64
-}
-
 type VideoService interface {
 	// QueryVideoById 根据视频id获取视频
 	QueryVideoById(videoID int64) VideoParams
