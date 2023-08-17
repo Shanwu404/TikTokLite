@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
@@ -12,12 +11,15 @@ import (
 type RelationController struct {
 	userService     service.UserService
 	relationService service.RelationService
+	/* 获取UserInfo所需要的接口 */
+	videoService service.VideoService
 }
 
 func NewRelationController() *RelationController {
 	return &RelationController{
 		userService:     service.NewUserService(),
 		relationService: service.NewRelationService(),
+		videoService:    service.NewVideoService(),
 	}
 }
 
@@ -86,7 +88,7 @@ func (rc *RelationController) RelationAction(c *gin.Context) {
 	}
 }
 
-// FollowersList GET /douyin/relation/follow/list/ 获取粉丝列表
+// FollowersList GET /douyin/relation/follower/list/ 获取粉丝列表
 func (rc *RelationController) FollowersList(c *gin.Context) {
 	// 1. 取出用户id
 	userId := c.GetInt64("id")
@@ -110,12 +112,49 @@ func (rc *RelationController) FollowersList(c *gin.Context) {
 		c.JSON(http.StatusOK, UserListResponse{
 			Response: Response{
 				StatusCode: -1,
-				StatusMsg:  "获取粉丝列表失败",
+				StatusMsg:  "get follower list failed",
 			},
 			UserList: nil,
 		})
 		return
 	}
-	// TODO 4. 将用户粉丝列表转换为UserInfo列表
-	log.Println("followerList: ", followerList)
+	// 4. 将用户粉丝列表转换为UserInfo列表
+	var userInfoList []UserInfo
+	for _, followerId := range followerList {
+		UserInfo := rc.completeUserInfo(followerId)
+		userInfoList = append(userInfoList, UserInfo)
+	}
+
+	c.JSON(http.StatusOK, UserListResponse{
+		Response: Response{
+			StatusCode: 0,
+			StatusMsg:  "get follower list success",
+		},
+		UserList: userInfoList,
+	})
+}
+
+/*--------------------------------组装用户信息----------------------------*/
+func (rc *RelationController) completeUserInfo(userId int64) UserInfo {
+	user, _ := rc.userService.QueryUserByID(userId)
+	followCount, _ := rc.relationService.CountFollows(userId)
+	followerCount, _ := rc.relationService.CountFollowers(userId)
+	workCount := int64(len(rc.videoService.GetVideoListByUserId(userId)))
+	// TODO
+	// TotalFavorited :=
+	// FavoriteCount :=
+
+	return UserInfo{
+		Id:              user.ID,
+		Username:        user.Username,
+		FollowCount:     followCount,
+		FollowerCount:   followerCount,
+		IsFollow:        false,
+		Avatar:          "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171029672.jpg",
+		BackgroundImage: "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171007006.jpg",
+		Signature:       "TikTokLite Signature",
+		TotalFavorited:  123456789,
+		WorkCount:       workCount,
+		FavoriteCount:   2,
+	}
 }
