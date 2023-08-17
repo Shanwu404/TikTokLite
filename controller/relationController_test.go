@@ -27,3 +27,10 @@ func TestFollowerList(t *testing.T) {
 	method := "GET"
 	SendRequest(method, url, strings.NewReader(token))
 }
+
+func TestFriendList(t *testing.T) {
+	token, _ := auth.GenerateToken("lux", 7)
+	url := "http://localhost:8080/douyin/relation/friend/list/?user_id=7&token=" + token
+	method := "GET"
+	SendRequest(method, url, strings.NewReader(token))
+}

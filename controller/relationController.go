@@ -30,10 +30,6 @@ type UserListResponse struct {
 	UserList []UserInfo `json:"user_list"`
 }
 
-type FriendListResponse struct {
-	UserListResponse
-}
-
 // RelationAction POST /douyin/relation/action/ 关注/取消关注
 func (rc *RelationController) RelationAction(c *gin.Context) {
 
@@ -181,6 +177,55 @@ func (rc *RelationController) FollowersList(c *gin.Context) {
 		Response: Response{
 			StatusCode: 0,
 			StatusMsg:  "get follower list success",
+		},
+		UserList: userInfoList,
+	})
+}
+
+// FriendList GET /douyin/relation/friend/list/ 获取好友列表
+func (rc *RelationController) FriendList(c *gin.Context) {
+
+	// 1. 取出用户id
+	userId := c.GetInt64("id")
+
+	// 2. 检查查询参数中的用户ID是否存在并且与当前用户ID相匹配
+	queryUserId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	if err != nil || userId != queryUserId {
+		c.JSON(http.StatusOK, UserListResponse{
+			Response: Response{
+				StatusCode: -1,
+				StatusMsg:  "user_id error",
+			},
+			UserList: nil,
+		})
+		return
+	}
+
+	// 3. 获取用户好友列表
+	friendList, err := rc.relationService.GetFriendList(userId)
+	if err != nil {
+		c.JSON(http.StatusOK, UserListResponse{
+			Response: Response{
+				StatusCode: -1,
+				StatusMsg:  "get friend list failed",
+			},
+			UserList: nil,
+		})
+		return
+	}
+
+	// 4. 将用户好友列表转换为UserInfo列表
+	var userInfoList []UserInfo
+	for _, friendId := range friendList {
+		UserInfo := rc.completeUserInfo(friendId)
+		UserInfo.IsFollow = true // 好友列表中的用户一定是关注了当前用户的
+		userInfoList = append(userInfoList, UserInfo)
+	}
+
+	c.JSON(http.StatusOK, UserListResponse{
+		Response: Response{
+			StatusCode: 0,
+			StatusMsg:  "get friend list success",
 		},
 		UserList: userInfoList,
 	})
