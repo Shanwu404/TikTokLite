@@ -25,3 +25,13 @@ type CommentInfo struct {
 	Content    string
 	CreateDate string
 }
+
+type VideoInfo struct {
+	User          UserInfo
+	PlayURL       string
+	CoverURL      string
+	Title         string
+	FavoriteCount int64
+	CommentCount  int64
+	IsFavorite    int64
+}

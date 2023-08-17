@@ -7,7 +7,10 @@ import (
 )
 
 type RelationServiceImpl struct {
-	UserService *UserServiceImpl
+}
+
+func NewRelationService() RelationService {
+	return &RelationServiceImpl{}
 }
 
 func (rs *RelationServiceImpl) Follow(userId int64, followId int64) (bool, error) {
@@ -28,7 +31,7 @@ func (rs *RelationServiceImpl) Follow(userId int64, followId int64) (bool, error
 	return true, nil
 }
 
-func (rs *RelationServiceImpl) Unfollow(userId int64, followId int64) (bool, error) {
+func (rs *RelationServiceImpl) UnFollow(userId int64, followId int64) (bool, error) {
 	// 检查用户是否已经关注了followId
 	isFollowed, err := dao.IsFollowed(userId, followId)
 	if err != nil {

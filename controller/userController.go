@@ -10,7 +10,7 @@ import (
 
 type UserResponse struct {
 	Response
-	UserInfo UserInfo `json:"user_info"`
+	UserInfo UserInfo `json:"user"`
 }
 
 type LoginResponse struct {
