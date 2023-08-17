@@ -19,7 +19,7 @@ func NewRouter() *gin.Engine {
 	likeController := controller.NewLikeController()
 
 	// basic apis
-	apiRouter.GET("/feed/", videoController.Feed)
+	apiRouter.GET("/feed/", auth.Auth, videoController.Feed)
 	apiRouter.POST("/publish/action/", auth.Auth, videoController.PublishAction)
 	apiRouter.POST("/publish/list/", auth.Auth, videoController.PublishList)
 
