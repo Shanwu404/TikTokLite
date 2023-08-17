@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Shanwu404/TikTokLite/utils/auth"
+	"github.com/Shanwu404/TikTokLite/middleware/auth"
 )
 
 func TestRelationAction(t *testing.T) {

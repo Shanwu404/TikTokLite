@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Shanwu404/TikTokLite/middleware/auth"
 	"github.com/Shanwu404/TikTokLite/service"
-	"github.com/Shanwu404/TikTokLite/utils/auth"
+
 	"github.com/gin-gonic/gin"
 )
 
