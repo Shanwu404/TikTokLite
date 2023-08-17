@@ -21,7 +21,7 @@ func NewRelationController() *RelationController {
 		userService:     service.NewUserService(),
 		relationService: service.NewRelationService(),
 		videoService:    service.NewVideoService(),
-		likeService:     service.NewLikeSerivce(),
+		likeService:     service.NewLikeService(),
 	}
 }
 
