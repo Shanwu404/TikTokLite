@@ -6,11 +6,28 @@ import (
 	"github.com/Shanwu404/TikTokLite/dao"
 )
 
+func NewRelationService() *RelationServiceImpl {
+	return &RelationServiceImpl{
+		UserService: &UserServiceImpl{},
+	}
+}
+
 type RelationServiceImpl struct {
 	UserService *UserServiceImpl
 }
 
 func (rs *RelationServiceImpl) Follow(userId int64, followId int64) (bool, error) {
+	// 检查用户是否存在
+	isExisted := rs.UserService.IsUserIdExist(followId)
+	if !isExisted {
+		return false, fmt.Errorf("user %d does not exist", followId)
+	}
+
+	// 不能关注自己
+	if userId == followId {
+		return false, fmt.Errorf("can not follow yourself")
+	}
+
 	// 检查用户是否已经关注了followId
 	isFollowed, err := dao.IsFollowed(userId, followId)
 	if err != nil {
@@ -28,7 +45,7 @@ func (rs *RelationServiceImpl) Follow(userId int64, followId int64) (bool, error
 	return true, nil
 }
 
-func (rs *RelationServiceImpl) Unfollow(userId int64, followId int64) (bool, error) {
+func (rs *RelationServiceImpl) UnFollow(userId int64, followId int64) (bool, error) {
 	// 检查用户是否已经关注了followId
 	isFollowed, err := dao.IsFollowed(userId, followId)
 	if err != nil {
