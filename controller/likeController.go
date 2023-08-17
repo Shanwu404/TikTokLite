@@ -1,10 +1,11 @@
 package controller
 
 import (
-	"github.com/Shanwu404/TikTokLite/service"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/Shanwu404/TikTokLite/service"
+	"github.com/gin-gonic/gin"
 )
 
 type FavoriteListResponse struct {
@@ -24,7 +25,7 @@ func NewLikeController() *LikeController {
 		videoService:    service.NewVideoService(),
 		userService:     service.NewUserService(),
 		relationService: service.NewRelationService(),
-		likeService:     service.NewLikeSerivce(),
+		likeService:     service.NewLikeService(),
 	}
 }
 

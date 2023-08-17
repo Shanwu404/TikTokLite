@@ -15,14 +15,18 @@ const (
 )
 
 type VideoController struct {
-	videoService service.VideoService
-	userService  service.UserService
+	videoService   service.VideoService
+	userService    service.UserService
+	commentService service.CommentService
+	likeService    service.LikeService
 }
 
 func NewVideoController() *VideoController {
 	return &VideoController{
 		service.NewVideoService(),
 		service.NewUserService(),
+		service.NewCommentService(),
+		service.NewLikeService(),
 	}
 }
 
@@ -46,9 +50,9 @@ func (vc *VideoController) Feed(c *gin.Context) {
 	for i := range videosWithAuthorID {
 		authorInfo := UserInfo{Id: videosWithAuthorID[i].AuthorID}
 		vc.completeUserInfo(&authorInfo)
-		combineVideoAndAuthor(&videosWithAuthorID[i], &authorInfo, &videoList[i])
+		vc.combineVideoAndAuthor(&videosWithAuthorID[i], &authorInfo, &videoList[i])
 	}
-	log.Println(videoList)
+	log.Println("videolist", videoList)
 	c.JSON(http.StatusOK, douyinFeedResponse{
 		Response:  Response{0, "Feeding Succeeded."},
 		NextTime:  nextTimeInt,
@@ -106,7 +110,7 @@ func (vc *VideoController) PublishList(c *gin.Context) {
 	vc.completeUserInfo(&authorInfo)
 	videoList := make([]Video, len(userWorks))
 	for i := range userWorks {
-		combineVideoAndAuthor(&userWorks[i], &authorInfo, &videoList[i])
+		vc.combineVideoAndAuthor(&userWorks[i], &authorInfo, &videoList[i])
 	}
 	c.JSON(http.StatusOK, douyinPublishListResponse{
 		Response:  Response{0, "Get Publish List."},
@@ -118,14 +122,14 @@ func (vc *VideoController) PublishList(c *gin.Context) {
 // --------------------------------
 // 这部分工具函数也要跟随组装数据代码一起放入单独一层
 
-func combineVideoAndAuthor(video *service.VideoParams, author *UserInfo, result *Video) {
+func (vc *VideoController) combineVideoAndAuthor(video *service.VideoParams, author *UserInfo, result *Video) {
 	*result = Video{
 		ID:            video.ID,
 		Author:        *author,
 		PlayURL:       video.PlayURL,
 		CoverURL:      video.CoverURL,
-		FavoriteCount: 1000,
-		CommentCount:  1000,
+		FavoriteCount: vc.likeService.CountLikes(video.ID),
+		CommentCount:  vc.commentService.CountComments(video.ID),
 		IsFavorite:    true,
 		Title:         video.Title,
 	}

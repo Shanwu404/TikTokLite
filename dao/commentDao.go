@@ -42,3 +42,13 @@ func DeleteComment(id int64) bool {
 	db.Delete(&comment)
 	return true
 }
+
+// CountComments 根据视频id统计评论数量
+func CountComments(id int64) (int64, error) {
+	var count int64
+	err := db.Model(&Comment{}).Where("video_id = ?", id).Count(&count).Error
+	if err != nil {
+		return -1, err
+	}
+	return count, nil
+}

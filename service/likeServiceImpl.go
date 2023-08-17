@@ -9,7 +9,7 @@ import (
 type LikeServiceImpl struct {
 }
 
-func NewLikeSerivce() LikeService {
+func NewLikeService() LikeService {
 	return &LikeServiceImpl{}
 }
 
@@ -100,6 +100,16 @@ func (like LikeServiceImpl) IsLike(videoId int64, userId int64) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+func (like LikeServiceImpl) CountLikes(videoId int64) int64 {
+	cnt, err := dao.CountLikes(videoId)
+	if err != nil {
+		log.Println("count from db error:", err)
+		return 0
+	}
+	log.Println("count likes successfully!")
+	return cnt
 }
 
 /*获取用户userId的获取的点赞总数*/

@@ -11,4 +11,7 @@ type CommentService interface {
 
 	// DeleteComment 删除评论
 	DeleteComment(id int64) (int32, string)
+
+	// CountComments 统计评论数
+	CountComments(id int64) int64
 }
