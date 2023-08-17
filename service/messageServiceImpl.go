@@ -7,6 +7,10 @@ import (
 
 type MessageServiceImpl struct{}
 
+func NewMessageService() MessageService {
+	return &MessageServiceImpl{}
+}
+
 func (MessageServiceImpl) QueryMessagesByIds(fromUserId int64, toUserId int64) []dao.Message {
 	messages, err := dao.QueryMessagesByIds(fromUserId, toUserId)
 	if err != nil {

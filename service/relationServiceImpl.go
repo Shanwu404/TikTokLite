@@ -6,14 +6,14 @@ import (
 	"github.com/Shanwu404/TikTokLite/dao"
 )
 
+type RelationServiceImpl struct {
+	UserService *UserServiceImpl
+}
+
 func NewRelationService() *RelationServiceImpl {
 	return &RelationServiceImpl{
 		UserService: &UserServiceImpl{},
 	}
-}
-
-type RelationServiceImpl struct {
-	UserService *UserServiceImpl
 }
 
 func (rs *RelationServiceImpl) Follow(userId int64, followId int64) (bool, error) {

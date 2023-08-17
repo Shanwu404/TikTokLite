@@ -14,8 +14,18 @@ type MessageListResponse struct {
 	MessageList []dao.Message
 }
 
+type MessageController struct {
+	messageService service.MessageService
+}
+
+func NewMessageController() *MessageController {
+	return &MessageController{
+		messageService: service.NewMessageService(),
+	}
+}
+
 // MessageAction POST /douyin/message/action/ 发送消息
-func MessageAction(c *gin.Context) {
+func (ms *MessageController) MessageAction(c *gin.Context) {
 	actionType := c.Query("action_type")
 	msi := service.MessageServiceImpl{}
 	if actionType == "1" {
@@ -39,7 +49,7 @@ func MessageAction(c *gin.Context) {
 }
 
 // MessageList GET /douyin/message/chat/ 聊天记录
-func MessageList(c *gin.Context) {
+func (ms *MessageController) MessageList(c *gin.Context) {
 	msi := service.MessageServiceImpl{}
 	// 获取当前用户
 	userId := c.GetInt64("id")

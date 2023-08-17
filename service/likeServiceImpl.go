@@ -7,8 +7,10 @@ import (
 )
 
 type LikeServiceImpl struct {
-	UserService
-	VideoService
+}
+
+func NewLikeSerivce() LikeService {
+	return &LikeServiceImpl{}
 }
 
 /*点赞*/
