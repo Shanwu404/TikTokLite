@@ -23,7 +23,7 @@ func NewUserController() *UserController {
 
 type UserResponse struct {
 	Response
-	UserInfo UserInfo `json:"user_info"`
+	UserInfo UserInfo `json:"user"`
 }
 
 type LoginResponse struct {
@@ -57,7 +57,6 @@ func (uc *UserController) Register(c *gin.Context) {
 		return
 	} else {
 		token, _ := auth.GenerateToken(username, userId)
-		token = "token=" + token
 		c.JSON(http.StatusOK, LoginResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 			UserId:   userId,
@@ -84,7 +83,6 @@ func (uc *UserController) Login(c *gin.Context) {
 			return
 		}
 		token, _ := auth.GenerateToken(user.Username, user.ID)
-		token = "token=" + token
 		c.JSON(http.StatusOK, LoginResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 			UserId:   user.ID,
