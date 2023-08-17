@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/Shanwu404/TikTokLite/controller"
 	"github.com/Shanwu404/TikTokLite/middleware/auth"
-	"github.com/Shanwu404/TikTokLite/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,9 +11,7 @@ func NewRouter() *gin.Engine {
 	apiRouter := r.Group("/douyin")
 	apiRouter.Static("tiktok", "./videos") //测试用。配置静态资源路径
 
-	userService := service.NewUserService()                     // 实例化 UserService
-	userController := controller.NewUserController(userService) // 实例化 UserController
-
+	userController := controller.NewUserController()
 	videoController := controller.NewVideoController()
 	commentController := controller.NewCommentController()
 	messageController := controller.NewMessageController()
