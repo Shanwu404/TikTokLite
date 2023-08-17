@@ -12,6 +12,7 @@ func NewRouter() *gin.Engine {
 	apiRouter.Static("tiktok", "./videos") //测试用。配置静态资源路径
 
 	userController := controller.NewUserController()
+	relationController := controller.NewRelationController()
 	videoController := controller.NewVideoController()
 	commentController := controller.NewCommentController()
 	messageController := controller.NewMessageController()
@@ -25,6 +26,11 @@ func NewRouter() *gin.Engine {
 	apiRouter.POST("/user/register/", userController.Register)
 	apiRouter.POST("/user/login/", userController.Login)
 	apiRouter.GET("/user/", userController.GetUserInfo)
+
+	apiRouter.GET("/relation/follow/list/", auth.Auth, relationController.FollowsList)
+	apiRouter.GET("/relation/follower/list/", auth.Auth, relationController.FollowersList)
+	apiRouter.POST("/relation/action/", auth.Auth, relationController.RelationAction)
+	apiRouter.GET("/relation/friend/list/", auth.Auth, relationController.FriendList)
 
 	apiRouter.POST("/comment/action/", auth.Auth, commentController.CommentAction)
 	apiRouter.GET("/comment/list/", auth.Auth, commentController.CommentList)

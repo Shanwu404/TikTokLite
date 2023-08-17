@@ -18,9 +18,11 @@ func NewRelationService() *RelationServiceImpl {
 
 func (rs *RelationServiceImpl) Follow(userId int64, followId int64) (bool, error) {
 	// 检查用户是否存在
-	isExisted := rs.UserService.IsUserIdExist(followId)
-	if !isExisted {
+
+	if isExisted := rs.UserService.IsUserIdExist(followId); !isExisted {
 		return false, fmt.Errorf("user %d does not exist", followId)
+	} else if isExisted = rs.UserService.IsUserIdExist(userId); !isExisted {
+		return false, fmt.Errorf("user %d does not exist", userId)
 	}
 
 	// 不能关注自己
