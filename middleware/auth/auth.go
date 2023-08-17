@@ -26,6 +26,10 @@ func Auth(c *gin.Context) {
 			signaturedString = c.Query("token")
 		}
 	}
+	if len(signaturedString) == 0 && c.Request.URL.Path == "/douyin/feed/" {
+		log.Println("Feeding without token.")
+		c.Next()
+	}
 	if len(signaturedString) == 0 {
 		c.Abort()
 		c.JSON(
