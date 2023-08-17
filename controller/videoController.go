@@ -12,23 +12,22 @@ import (
 
 const (
 	FeedLimit = 8
-	ListLimit = 8
 )
 
-type videoController struct {
+type VideoController struct {
 	videoService service.VideoService
 	userService  service.UserService
 }
 
-func NewVideoController() *videoController {
-	return &videoController{
+func NewVideoController() *VideoController {
+	return &VideoController{
 		service.NewVideoService(),
 		service.NewUserService(),
 	}
 }
 
 // Feed GET /douyin/feed/ 视频流接口
-func (vc *videoController) Feed(c *gin.Context) {
+func (vc *VideoController) Feed(c *gin.Context) {
 	reqParams, _ := feedParseAndValidateParams(c)
 	latestTime := reqParams.LatestTime
 	if latestTime == 0 {
@@ -57,7 +56,7 @@ func (vc *videoController) Feed(c *gin.Context) {
 	})
 }
 
-func (vc *videoController) PublishAction(c *gin.Context) {
+func (vc *VideoController) PublishAction(c *gin.Context) {
 	req, valid := publishActionParseAndValidateParams(c)
 	if !valid {
 		c.JSON(http.StatusBadRequest, douyinPublishActionResponse{
@@ -93,7 +92,7 @@ func (vc *videoController) PublishAction(c *gin.Context) {
 	}
 }
 
-func (vc *videoController) PublishList(c *gin.Context) {
+func (vc *VideoController) PublishList(c *gin.Context) {
 	reqParams, valid := publishListParseAndValidateParams(c)
 	if !valid {
 		c.JSON(http.StatusBadRequest, douyinPublishListResponse{
@@ -105,7 +104,7 @@ func (vc *videoController) PublishList(c *gin.Context) {
 	userWorks := vc.videoService.GetVideoListByUserId(reqParams.UserID)
 	authorInfo := UserInfo{Id: userWorks[0].AuthorID} // 同一个用户的视频，所以作者信息是一样的
 	vc.completeUserInfo(&authorInfo)
-	videoList := make([]Video, 0, len(userWorks))
+	videoList := make([]Video, len(userWorks))
 	for i := range userWorks {
 		combineVideoAndAuthor(&userWorks[i], &authorInfo, &videoList[i])
 	}
@@ -132,7 +131,7 @@ func combineVideoAndAuthor(video *service.VideoParams, author *UserInfo, result 
 	}
 }
 
-func (vc *videoController) completeUserInfo(userinfo *UserInfo) {
+func (vc *VideoController) completeUserInfo(userinfo *UserInfo) {
 	brief, _ := vc.userService.QueryUserByID(userinfo.Id)
 	*userinfo = UserInfo{
 		Id:              brief.ID,
