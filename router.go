@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/Shanwu404/TikTokLite/controller"
-	"github.com/Shanwu404/TikTokLite/utils/auth"
+	"github.com/Shanwu404/TikTokLite/middleware/auth"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,7 +17,7 @@ func NewRouter() *gin.Engine {
 	// basic apis
 	apiRouter.GET("/feed/", videoController.Feed)
 	apiRouter.POST("/publish/action/", auth.Auth, videoController.PublishAction)
-	apiRouter.POST("/publish/list/", auth.Auth, videoController.PublishList)
+	apiRouter.GET("/publish/list/", auth.Auth, videoController.PublishList)
 
 	apiRouter.POST("/user/register/", userController.Register)
 	apiRouter.POST("/user/login/", userController.Login)

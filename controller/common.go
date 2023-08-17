@@ -2,12 +2,12 @@ package controller
 
 type Response struct {
 	StatusCode int32  `json:"status_code"`
-	StatusMsg  string `json:"status_msg,omitempty"`
+	StatusMsg  string `json:"status_msg"`
 }
 
 type UserInfo struct {
 	Id              int64  `json:"id"`               // 用户ID
-	Username        string `json:"username"`         // 用户名
+	Username        string `json:"name"`             // 用户名
 	FollowCount     int64  `json:"follow_count"`     // 关注数
 	FollowerCount   int64  `json:"follower_count"`   // 粉丝数
 	IsFollow        bool   `json:"is_follow"`        // 是否关注
