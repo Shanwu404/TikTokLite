@@ -7,6 +7,10 @@ import (
 
 type CommentServiceImpl struct{}
 
+func NewCommentService() CommentService {
+	return &CommentServiceImpl{}
+}
+
 func (CommentServiceImpl) QueryCommentsByVideoId(id int64) []dao.Comment {
 	comments, err := dao.QueryCommentsByVideoId(id)
 	if err != nil {

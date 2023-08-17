@@ -13,23 +13,27 @@ func NewRouter() *gin.Engine {
 
 	userController := controller.NewUserController()
 	videoController := controller.NewVideoController()
-	relationController := controller.NewRelationController()
+	commentController := controller.NewCommentController()
+	messageController := controller.NewMessageController()
+	likeController := controller.NewLikeController()
+
 	// basic apis
 	apiRouter.GET("/feed/", videoController.Feed)
 	apiRouter.POST("/publish/action/", auth.Auth, videoController.PublishAction)
-	apiRouter.GET("/publish/list/", auth.Auth, videoController.PublishList)
+	apiRouter.POST("/publish/list/", auth.Auth, videoController.PublishList)
 
 	apiRouter.POST("/user/register/", userController.Register)
 	apiRouter.POST("/user/login/", userController.Login)
-	apiRouter.GET("/user/", auth.Auth, userController.GetUserInfo)
+	apiRouter.GET("/user/", userController.GetUserInfo)
 
-	apiRouter.POST("/relation/action/", auth.Auth, relationController.RelationAction)
+	apiRouter.POST("/comment/action/", auth.Auth, commentController.CommentAction)
+	apiRouter.GET("/comment/list/", auth.Auth, commentController.CommentList)
 
-	apiRouter.POST("/comment/action/", auth.Auth, controller.CommentAction)
-	apiRouter.GET("/comment/list/", auth.Auth, controller.CommentList)
+	apiRouter.POST("/message/action/", auth.Auth, messageController.MessageAction)
+	apiRouter.GET("/message/chat/", auth.Auth, messageController.MessageList)
 
-	apiRouter.POST("/message/action/", auth.Auth, controller.MessageAction)
-	apiRouter.GET("/message/chat/", auth.Auth, controller.MessageList)
+	apiRouter.POST("/favorite/action/", auth.Auth, likeController.FavoriteAction)
+	apiRouter.GET("/favorite/list/", auth.Auth, likeController.FavoriteList)
 	return r
 
 }
