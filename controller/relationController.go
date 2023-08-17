@@ -13,6 +13,7 @@ type RelationController struct {
 	relationService service.RelationService
 	/* 获取UserInfo所需要的接口 */
 	videoService service.VideoService
+	likeService  service.LikeService
 }
 
 func NewRelationController() *RelationController {
@@ -20,6 +21,7 @@ func NewRelationController() *RelationController {
 		userService:     service.NewUserService(),
 		relationService: service.NewRelationService(),
 		videoService:    service.NewVideoService(),
+		likeService:     service.NewLikeSerivce(),
 	}
 }
 
@@ -190,9 +192,9 @@ func (rc *RelationController) completeUserInfo(userId int64) UserInfo {
 	followCount, _ := rc.relationService.CountFollows(userId)
 	followerCount, _ := rc.relationService.CountFollowers(userId)
 	workCount := int64(len(rc.videoService.GetVideoListByUserId(userId)))
+	favoriteCount, _ := rc.likeService.LikeVideoCount(userId)
 	// TODO
 	// TotalFavorited :=
-	// FavoriteCount :=
 
 	return UserInfo{
 		Id:              user.ID,
@@ -205,6 +207,6 @@ func (rc *RelationController) completeUserInfo(userId int64) UserInfo {
 		Signature:       "TikTokLite Signature",
 		TotalFavorited:  123456789,
 		WorkCount:       workCount,
-		FavoriteCount:   2,
+		FavoriteCount:   favoriteCount,
 	}
 }
