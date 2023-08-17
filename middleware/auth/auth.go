@@ -47,7 +47,6 @@ func Auth(c *gin.Context) {
 		c.Set("username", claims.Name)
 		c.Set("id", claims.Id)
 		c.Next()
-		return
 	default:
 		log.Println("Token Error.")
 		c.AbortWithStatusJSON(

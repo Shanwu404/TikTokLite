@@ -12,25 +12,27 @@ import (
 
 const (
 	FeedLimit = 8
-	ListLimit = 8
 )
 
-type videoController struct {
+type VideoController struct {
 	videoService service.VideoService
 	userService  service.UserService
 }
 
-func NewVideoController() *videoController {
-	return &videoController{
+func NewVideoController() *VideoController {
+	return &VideoController{
 		service.NewVideoService(),
 		service.NewUserService(),
 	}
 }
 
 // Feed GET /douyin/feed/ 视频流接口
-func (vc *videoController) Feed(c *gin.Context) {
+func (vc *VideoController) Feed(c *gin.Context) {
 	reqParams, _ := feedParseAndValidateParams(c)
 	latestTime := reqParams.LatestTime
+	if latestTime == 0 {
+		latestTime = time.Now().Unix()
+	}
 
 	//目前客户端可缓存30个视频
 	videosWithAuthorID := vc.videoService.GetMultiVideoBefore(latestTime, FeedLimit)
@@ -49,21 +51,22 @@ func (vc *videoController) Feed(c *gin.Context) {
 	log.Println(videoList)
 	c.JSON(http.StatusOK, douyinFeedResponse{
 		Response:  Response{0, "Feeding Succeeded."},
-		VideoList: videoList,
 		NextTime:  nextTimeInt,
+		VideoList: videoList,
 	})
 }
 
-func (vc *videoController) PublishAction(c *gin.Context) {
-	reqJSON, valid := publishActionParseAndValidateParams(c)
+func (vc *VideoController) PublishAction(c *gin.Context) {
+	req, valid := publishActionParseAndValidateParams(c)
 	if !valid {
 		c.JSON(http.StatusBadRequest, douyinPublishActionResponse{
 			Response: Response{-1, "Invalid Request."},
 		})
 		return
 	}
-	filename := reqJSON.Title
-	err := vc.videoService.StoreVideo(reqJSON.Data, c.GetString("username"), filename)
+	filename := c.GetString("username") + "_" + req.Title + "_" + time.Now().Format("20060102150405")
+	err := c.SaveUploadedFile(req.Data, "videos/"+filename)
+	// err := vc.videoService.StoreVideo(req.Data, c.GetString("username"), filename)
 	if err != nil {
 		log.Println("Uploading failed:" + err.Error())
 		c.JSON(http.StatusOK, douyinPublishActionResponse{
@@ -72,13 +75,12 @@ func (vc *videoController) PublishAction(c *gin.Context) {
 		return
 	}
 	author, _ := vc.userService.QueryUserByUsername(c.GetString("username"))
-	prefix := ""
 	video := service.VideoParams{
 		AuthorID:    author.ID,
-		PlayURL:     prefix + filename,
+		PlayURL:     "http://47.94.162.202:8080/douyin/tiktok/" + filename,
 		CoverURL:    "",
 		PublishTime: time.Now().Truncate(time.Second),
-		Title:       reqJSON.Title,
+		Title:       req.Title,
 	}
 	err = vc.videoService.InsertVideosTable(&video)
 	if err != nil {
@@ -90,7 +92,7 @@ func (vc *videoController) PublishAction(c *gin.Context) {
 	}
 }
 
-func (vc *videoController) PublishList(c *gin.Context) {
+func (vc *VideoController) PublishList(c *gin.Context) {
 	reqParams, valid := publishListParseAndValidateParams(c)
 	if !valid {
 		c.JSON(http.StatusBadRequest, douyinPublishListResponse{
@@ -102,7 +104,7 @@ func (vc *videoController) PublishList(c *gin.Context) {
 	userWorks := vc.videoService.GetVideoListByUserId(reqParams.UserID)
 	authorInfo := UserInfo{Id: userWorks[0].AuthorID} // 同一个用户的视频，所以作者信息是一样的
 	vc.completeUserInfo(&authorInfo)
-	videoList := make([]Video, 0, len(userWorks))
+	videoList := make([]Video, len(userWorks))
 	for i := range userWorks {
 		combineVideoAndAuthor(&userWorks[i], &authorInfo, &videoList[i])
 	}
@@ -129,7 +131,7 @@ func combineVideoAndAuthor(video *service.VideoParams, author *UserInfo, result 
 	}
 }
 
-func (vc *videoController) completeUserInfo(userinfo *UserInfo) {
+func (vc *VideoController) completeUserInfo(userinfo *UserInfo) {
 	brief, _ := vc.userService.QueryUserByID(userinfo.Id)
 	*userinfo = UserInfo{
 		Id:              brief.ID,
@@ -137,10 +139,10 @@ func (vc *videoController) completeUserInfo(userinfo *UserInfo) {
 		FollowCount:     110,   // followService提供
 		FollowerCount:   12000, // followService提供
 		IsFollow:        false, // followService提供
-		Avatar:          "",
-		BackgroundImage: "",
+		Avatar:          "https://image.zhihuishu.com/zhs/ablecommons/demo/201804/a3b5f5570a2740749d3c372848a18d6f.jpg",
+		BackgroundImage: "https://image.zhihuishu.com/zhs/ablecommons/demo/201804/a3b5f5570a2740749d3c372848a18d6f.jpg",
 		Signature:       "唯一不变是永远的改变",
-		TotalFavorited:  9876543210, // likeService提供
+		TotalFavorited:  210, // likeService提供
 		WorkCount:       int64(len(vc.videoService.GetVideoListByUserId(userinfo.Id))),
 		FavoriteCount:   123456, // likeService提供
 	}

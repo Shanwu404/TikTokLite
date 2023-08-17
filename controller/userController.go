@@ -4,9 +4,28 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Shanwu404/TikTokLite/middleware/auth"
 	"github.com/Shanwu404/TikTokLite/service"
+
 	"github.com/gin-gonic/gin"
 )
+
+type UserController struct {
+	userService service.UserService
+	/* 获取UserInfo所需要的接口 */
+	relationService service.RelationService
+	videoService    service.VideoService
+	// likeService     service.LikeService // 未开发
+}
+
+func NewUserController() *UserController {
+	return &UserController{
+		userService:     service.NewUserService(),
+		relationService: service.NewRelationService(),
+		videoService:    service.NewVideoService(),
+		// likeService:     service.NewLikeService(), // 未开发
+	}
+}
 
 type UserResponse struct {
 	Response
@@ -29,16 +48,6 @@ type RegisterRequest struct {
 	Password string `json:"password"`
 }
 
-type UserController struct {
-	userService service.UserService
-}
-
-func NewUserController(userService service.UserService) *UserController {
-	return &UserController{
-		userService: userService,
-	}
-}
-
 // Register POST /douyin/user/register/ 用户注册
 func (uc *UserController) Register(c *gin.Context) {
 	// 可以修改为查询JSON
@@ -53,9 +62,11 @@ func (uc *UserController) Register(c *gin.Context) {
 		})
 		return
 	} else {
+		token, _ := auth.GenerateToken(username, userId)
 		c.JSON(http.StatusOK, LoginResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 			UserId:   userId,
+			Token:    token,
 		})
 		return
 	}
@@ -77,9 +88,11 @@ func (uc *UserController) Login(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error occurred while retrieving user information"})
 			return
 		}
+		token, _ := auth.GenerateToken(user.Username, user.ID)
 		c.JSON(http.StatusOK, LoginResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 			UserId:   user.ID,
+			Token:    token,
 		})
 		return
 	}
@@ -87,29 +100,52 @@ func (uc *UserController) Login(c *gin.Context) {
 
 // GetUserInfo GET /douyin/user/ 用户信息
 func (uc *UserController) GetUserInfo(c *gin.Context) {
-	userId := c.Query("user_id")
-	id, _ := strconv.ParseInt(userId, 10, 64) // 字符串转int64
-	user, err := uc.userService.QueryUserByID(id)
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64) // 字符串转int64
 	if err != nil {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "User does not exist"},
+		c.JSON(http.StatusBadRequest, UserResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "Invalid user ID format"},
 		})
 		return
 	}
+
+	uc.userService.IsUserIdExist(userId)
+	if isExisted := uc.userService.IsUserIdExist(userId); !isExisted {
+		{
+			c.JSON(http.StatusOK, UserResponse{
+				Response: Response{StatusCode: 1, StatusMsg: "User does not exist"},
+			})
+			return
+		}
+	}
+
+	userinfo := uc.completeUserInfo(userId)
 	c.JSON(http.StatusOK, UserResponse{
 		Response: Response{StatusCode: 0},
-		UserInfo: UserInfo{
-			Id:              user.ID,       // 用户ID
-			Username:        user.Username, // 用户名
-			FollowCount:     0,             // TODO: 关注数接口实现
-			FollowerCount:   0,             // TODO: 粉丝数接口实现
-			IsFollow:        false,         // TODO: 是否关注接口实现
-			Avatar:          "",            // TODO: 头像接口实现
-			BackgroundImage: "",            // TODO: 背景图片接口实现
-			Signature:       "",            // TODO: 个人简介接口实现
-			TotalFavorited:  0,             // TODO: 获赞数接口实现
-			WorkCount:       0,             // TODO: 作品数接口实现
-			FavoriteCount:   0,             // TODO: 喜欢数接口实现
-		},
+		UserInfo: userinfo,
 	})
+}
+
+/*--------------------------------组装用户信息----------------------------*/
+func (uc *UserController) completeUserInfo(userId int64) UserInfo {
+	user, _ := uc.userService.QueryUserByID(userId)
+	followCount, _ := uc.relationService.CountFollows(userId)
+	followerCount, _ := uc.relationService.CountFollowers(userId)
+	workCount := int64(len(uc.videoService.GetVideoListByUserId(userId)))
+	// TODO
+	// TotalFavorited :=
+	// FavoriteCount :=
+
+	return UserInfo{
+		Id:              user.ID,
+		Username:        user.Username,
+		FollowCount:     followCount,
+		FollowerCount:   followerCount,
+		IsFollow:        false,
+		Avatar:          "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171029672.jpg",
+		BackgroundImage: "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171007006.jpg",
+		Signature:       "TikTokLite Signature",
+		TotalFavorited:  123456789,
+		WorkCount:       workCount,
+		FavoriteCount:   2,
+	}
 }

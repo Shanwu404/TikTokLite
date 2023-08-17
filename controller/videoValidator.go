@@ -2,6 +2,7 @@
 package controller
 
 import (
+	"mime/multipart"
 	"strconv"
 	"time"
 	"unicode/utf8"
@@ -16,14 +17,14 @@ type douyinFeedRequest struct {
 
 type douyinFeedResponse struct {
 	Response
-	VideoList []Video `json:"video_list,omitempty"`
 	NextTime  int64   `json:"next_time,omitempty"`
+	VideoList []Video `json:"video_list"`
 }
 
 type douyinPublishActionRequest struct {
-	Token string `json:"token"`
-	Data  []byte `json:"data"`
-	Title string `json:"tilte"`
+	Token string                `json:"token"`
+	Data  *multipart.FileHeader `json:"data"`
+	Title string                `json:"tilte"`
 }
 
 type douyinPublishActionResponse struct {
@@ -62,9 +63,15 @@ func feedParseAndValidateParams(c *gin.Context) (douyinFeedRequest, bool) {
 }
 
 func publishActionParseAndValidateParams(c *gin.Context) (douyinPublishActionRequest, bool) {
-	req := douyinPublishActionRequest{}
-	c.ShouldBindJSON(&req)
-	if len(req.Data) == 0 {
+	req := douyinPublishActionRequest{
+		Title: c.PostForm("title"),
+	}
+	data, err := c.FormFile("data")
+	if err != nil {
+		return req, false
+	}
+	req.Data = data
+	if req.Data == nil {
 		return req, false
 	}
 	if utf8.RuneCountInString(req.Title) > 255 {
