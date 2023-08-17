@@ -88,6 +88,54 @@ func (rc *RelationController) RelationAction(c *gin.Context) {
 	}
 }
 
+// FriendsList GET /douyin/relation/follow/list/ 获取关注列表
+func (rc *RelationController) FollowsList(c *gin.Context) {
+	// 1. 取出用户id
+	userId := c.GetInt64("id")
+
+	// 2. 检查查询参数中的用户ID是否存在并且与当前用户ID相匹配
+	queryUserId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	if err != nil || userId != queryUserId {
+		c.JSON(http.StatusOK, UserListResponse{
+			Response: Response{
+				StatusCode: -1,
+				StatusMsg:  "user_id error",
+			},
+			UserList: nil,
+		})
+		return
+	}
+
+	// 3. 获取用户关注列表
+	followList, err := rc.relationService.GetFollowList(userId)
+	if err != nil {
+		c.JSON(http.StatusOK, UserListResponse{
+			Response: Response{
+				StatusCode: -1,
+				StatusMsg:  "get follow list failed",
+			},
+			UserList: nil,
+		})
+		return
+	}
+
+	// 4. 将用户关注列表转换为UserInfo列表
+	var userInfoList []UserInfo
+	for _, followId := range followList {
+		UserInfo := rc.completeUserInfo(followId)
+		UserInfo.IsFollow, _ = rc.relationService.IsFollowed(userId, followId)
+		userInfoList = append(userInfoList, UserInfo)
+	}
+
+	c.JSON(http.StatusOK, UserListResponse{
+		Response: Response{
+			StatusCode: 0,
+			StatusMsg:  "get follow list success",
+		},
+		UserList: userInfoList,
+	})
+}
+
 // FollowersList GET /douyin/relation/follower/list/ 获取粉丝列表
 func (rc *RelationController) FollowersList(c *gin.Context) {
 	// 1. 取出用户id
@@ -118,10 +166,12 @@ func (rc *RelationController) FollowersList(c *gin.Context) {
 		})
 		return
 	}
+
 	// 4. 将用户粉丝列表转换为UserInfo列表
 	var userInfoList []UserInfo
 	for _, followerId := range followerList {
 		UserInfo := rc.completeUserInfo(followerId)
+		UserInfo.IsFollow, _ = rc.relationService.IsFollowed(userId, followerId)
 		userInfoList = append(userInfoList, UserInfo)
 	}
 
@@ -149,7 +199,7 @@ func (rc *RelationController) completeUserInfo(userId int64) UserInfo {
 		Username:        user.Username,
 		FollowCount:     followCount,
 		FollowerCount:   followerCount,
-		IsFollow:        false,
+		IsFollow:        false, // 注意用户关系需要在具体函数内单独处理
 		Avatar:          "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171029672.jpg",
 		BackgroundImage: "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171007006.jpg",
 		Signature:       "TikTokLite Signature",

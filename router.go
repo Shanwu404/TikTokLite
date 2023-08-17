@@ -24,6 +24,7 @@ func NewRouter() *gin.Engine {
 	apiRouter.GET("/user/", auth.Auth, userController.GetUserInfo)
 
 	apiRouter.POST("/relation/action/", auth.Auth, relationController.RelationAction)
+	apiRouter.GET("/relation/follow/list/", auth.Auth, relationController.FollowsList)
 	apiRouter.GET("/relation/follower/list/", auth.Auth, relationController.FollowersList)
 
 	apiRouter.POST("/comment/action/", auth.Auth, controller.CommentAction)
