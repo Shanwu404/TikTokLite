@@ -20,10 +20,10 @@ type UserInfo struct {
 }
 
 type CommentInfo struct {
-	Id         int64
+	Id         int64 `json:"id"`
 	User       UserInfo
-	Content    string
-	CreateDate string
+	Content    string `json:"content"`
+	CreateDate string `json:"create_date"`
 }
 
 type VideoInfo struct {

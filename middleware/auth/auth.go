@@ -22,6 +22,9 @@ func Auth(c *gin.Context) {
 		signaturedString = c.Query("token")
 	case "POST":
 		signaturedString = c.PostForm("token")
+		if len(signaturedString) == 0 {
+			signaturedString = c.Query("token")
+		}
 	}
 	if len(signaturedString) == 0 {
 		c.Abort()

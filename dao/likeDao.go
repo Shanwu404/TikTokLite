@@ -63,3 +63,12 @@ func GetLikeUserIdList(videoId int64) ([]int64, error) {
 		return likeUserIdList, nil
 	}
 }
+
+func CountLikes(videoId int64) (int64, error) {
+	var count int64
+	err := db.Model(&Like{}).Where("video_id = ?", videoId).Count(&count).Error
+	if err != nil {
+		return -1, err
+	}
+	return count, nil
+}

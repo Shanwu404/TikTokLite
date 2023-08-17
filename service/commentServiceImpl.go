@@ -1,8 +1,9 @@
 package service
 
 import (
-	"github.com/Shanwu404/TikTokLite/dao"
 	"log"
+
+	"github.com/Shanwu404/TikTokLite/dao"
 )
 
 type CommentServiceImpl struct{}
@@ -35,4 +36,14 @@ func (CommentServiceImpl) DeleteComment(id int64) (int32, string) {
 		return 1, "Delete comment failed!"
 	}
 	return 0, "Delete comment successfully!"
+}
+
+func (CommentServiceImpl) CountComments(id int64) int64 {
+	cnt, err := dao.CountComments(id)
+	if err != nil {
+		log.Println("count from db error:", err)
+		return 0
+	}
+	log.Println("count comments successfully!")
+	return cnt
 }

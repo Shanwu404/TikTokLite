@@ -21,6 +21,7 @@ type LikeService interface {
 	//判断用户userId是否点赞视频videoId
 	IsLike(videoId int64, userId int64) (bool, error)
 
+	CountLikes(videoId int64) int64
 	/**待开发*/
 	//获取用户userId发布视频的总被赞数
 	//TotalLiked(userId int64) int64

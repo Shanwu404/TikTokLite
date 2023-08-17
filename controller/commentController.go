@@ -1,23 +1,24 @@
 package controller
 
 import (
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/service"
 	"github.com/Shanwu404/TikTokLite/utils"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 type CommentListResponse struct {
 	Response
-	CommentList []CommentInfo
+	CommentList []CommentInfo `json:"comment_list,omitempty"`
 }
 
 type CommentActionResponse struct {
 	Response
-	CommentInfo CommentInfo
+	CommentInfo CommentInfo `json:"comment,omitempty"`
 }
 
 type CommentController struct {
@@ -34,7 +35,7 @@ func NewCommentController() *CommentController {
 		commentService:  service.NewCommentService(),
 		relationService: service.NewRelationService(),
 		videoService:    service.NewVideoService(),
-		likeService:     service.NewLikeSerivce(),
+		likeService:     service.NewLikeService(),
 	}
 }
 
