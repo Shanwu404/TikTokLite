@@ -238,8 +238,7 @@ func (rc *RelationController) completeUserInfo(userId int64) UserInfo {
 	followerCount, _ := rc.relationService.CountFollowers(userId)
 	workCount := int64(len(rc.videoService.GetVideoListByUserId(userId)))
 	favoriteCount, _ := rc.likeService.LikeVideoCount(userId)
-	// TODO
-	// TotalFavorited :=
+	totalFavotited := rc.likeService.TotalFavorited(userId)
 
 	return UserInfo{
 		Id:              user.ID,
@@ -250,7 +249,7 @@ func (rc *RelationController) completeUserInfo(userId int64) UserInfo {
 		Avatar:          "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171029672.jpg",
 		BackgroundImage: "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171007006.jpg",
 		Signature:       "TikTokLite Signature",
-		TotalFavorited:  123456789,
+		TotalFavorited:  totalFavotited,
 		WorkCount:       workCount,
 		FavoriteCount:   favoriteCount,
 	}
