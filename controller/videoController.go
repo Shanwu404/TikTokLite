@@ -75,7 +75,7 @@ func (vc *VideoController) PublishAction(c *gin.Context) {
 	// err := vc.videoService.StoreVideo(req.Data, c.GetString("username"), filename)
 	if err != nil {
 		log.Println("Uploading failed:" + err.Error())
-		c.JSON(http.StatusOK, douyinPublishActionResponse{
+		c.JSON(http.StatusInternalServerError, douyinPublishActionResponse{
 			Response: Response{1, "Uploading Failed."},
 		})
 		return
@@ -91,11 +91,14 @@ func (vc *VideoController) PublishAction(c *gin.Context) {
 	err = vc.videoService.InsertVideosTable(&video)
 	if err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusOK, douyinPublishActionResponse{
+		c.JSON(http.StatusInternalServerError, douyinPublishActionResponse{
 			Response: Response{2, "Recording Failed."},
 		})
 		return
 	}
+	c.JSON(http.StatusOK, douyinPublishActionResponse{
+		Response: Response{0, "Uploaded."},
+	})
 }
 
 func (vc *VideoController) PublishList(c *gin.Context) {
