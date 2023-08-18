@@ -54,8 +54,11 @@ func (ms *MessageController) MessageList(c *gin.Context) {
 	userId := c.GetInt64("id")
 	// 获取接受用户
 	id := c.Query("to_user_id")
+	// 获取此后的消息
+	preMsgTimeStr := c.Query("pre_msg_time")
+	preMsgTime, _ := strconv.ParseInt(preMsgTimeStr, 10, 64)
 	toUserId, _ := strconv.ParseInt(id, 10, 64)
-	messages := ms.messageService.QueryMessagesByIds(userId, toUserId)
+	messages := ms.messageService.QueryMessagesByIdsAfter(userId, toUserId, preMsgTime)
 	messageList := make([]MessageInfo, 0, len(messages))
 	for _, message := range messages {
 		messageList = append(messageList, MessageInfo{
