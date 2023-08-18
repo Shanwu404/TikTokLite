@@ -15,10 +15,11 @@ const (
 )
 
 type VideoController struct {
-	videoService   service.VideoService
-	userService    service.UserService
-	commentService service.CommentService
-	likeService    service.LikeService
+	videoService    service.VideoService
+	userService     service.UserService
+	commentService  service.CommentService
+	likeService     service.LikeService
+	relationService service.RelationService
 }
 
 func NewVideoController() *VideoController {
@@ -27,12 +28,14 @@ func NewVideoController() *VideoController {
 		service.NewUserService(),
 		service.NewCommentService(),
 		service.NewLikeService(),
+		service.NewRelationService(),
 	}
 }
 
 // Feed GET /douyin/feed/ 视频流接口
 func (vc *VideoController) Feed(c *gin.Context) {
 	reqParams, _ := feedParseAndValidateParams(c)
+	userId := c.GetInt64("id")
 	latestTime := reqParams.LatestTime
 	if latestTime == 0 {
 		latestTime = time.Now().Unix()
@@ -49,10 +52,9 @@ func (vc *VideoController) Feed(c *gin.Context) {
 	// TODO: Goroutine
 	for i := range videosWithAuthorID {
 		authorInfo := UserInfo{Id: videosWithAuthorID[i].AuthorID}
-		vc.completeUserInfo(&authorInfo)
+		vc.completeUserInfo(&authorInfo, userId)
 		vc.combineVideoAndAuthor(&videosWithAuthorID[i], &authorInfo, &videoList[i])
 	}
-	log.Println("videolist", videoList)
 	c.JSON(http.StatusOK, douyinFeedResponse{
 		Response:  Response{0, "Feeding Succeeded."},
 		NextTime:  nextTimeInt,
@@ -104,10 +106,10 @@ func (vc *VideoController) PublishList(c *gin.Context) {
 		})
 		return
 	}
-
+	userId := c.GetInt64("id")
 	userWorks := vc.videoService.GetVideoListByUserId(reqParams.UserID)
 	authorInfo := UserInfo{Id: userWorks[0].AuthorID} // 同一个用户的视频，所以作者信息是一样的
-	vc.completeUserInfo(&authorInfo)
+	vc.completeUserInfo(&authorInfo, userId)
 	videoList := make([]Video, len(userWorks))
 	for i := range userWorks {
 		vc.combineVideoAndAuthor(&userWorks[i], &authorInfo, &videoList[i])
@@ -123,6 +125,7 @@ func (vc *VideoController) PublishList(c *gin.Context) {
 // 这部分工具函数也要跟随组装数据代码一起放入单独一层
 
 func (vc *VideoController) combineVideoAndAuthor(video *service.VideoParams, author *UserInfo, result *Video) {
+	flag, _ := vc.likeService.IsLike(video.ID, author.Id)
 	*result = Video{
 		ID:            video.ID,
 		Author:        *author,
@@ -130,24 +133,28 @@ func (vc *VideoController) combineVideoAndAuthor(video *service.VideoParams, aut
 		CoverURL:      video.CoverURL,
 		FavoriteCount: vc.likeService.CountLikes(video.ID),
 		CommentCount:  vc.commentService.CountComments(video.ID),
-		IsFavorite:    true,
+		IsFavorite:    flag,
 		Title:         video.Title,
 	}
 }
 
-func (vc *VideoController) completeUserInfo(userinfo *UserInfo) {
+func (vc *VideoController) completeUserInfo(userinfo *UserInfo, userId int64) {
 	brief, _ := vc.userService.QueryUserByID(userinfo.Id)
+	follows, _ := vc.relationService.CountFollows(brief.ID)
+	followers, _ := vc.relationService.CountFollowers(brief.ID)
+	isFollow, _ := vc.relationService.IsFollowed(userId, brief.ID)
+	favorite_count, _ := vc.likeService.LikeVideoCount(brief.ID)
 	*userinfo = UserInfo{
 		Id:              brief.ID,
 		Username:        brief.Username,
-		FollowCount:     110,   // followService提供
-		FollowerCount:   12000, // followService提供
-		IsFollow:        false, // followService提供
+		FollowCount:     follows,   // followService提供
+		FollowerCount:   followers, // followService提供
+		IsFollow:        isFollow,  // followService提供
 		Avatar:          "https://image.zhihuishu.com/zhs/ablecommons/demo/201804/a3b5f5570a2740749d3c372848a18d6f.jpg",
 		BackgroundImage: "https://image.zhihuishu.com/zhs/ablecommons/demo/201804/a3b5f5570a2740749d3c372848a18d6f.jpg",
 		Signature:       "唯一不变是永远的改变",
-		TotalFavorited:  210, // likeService提供
+		TotalFavorited:  vc.likeService.TotalFavorited(brief.ID), // likeService提供
 		WorkCount:       int64(len(vc.videoService.GetVideoListByUserId(userinfo.Id))),
-		FavoriteCount:   123456, // likeService提供
+		FavoriteCount:   favorite_count, // likeService提供
 	}
 }

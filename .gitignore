@@ -22,3 +22,13 @@ go.work
 
 # Goland config directory
 .idea/
+
+image/
+videos/
+
+# air
+tmp/
+
+# gin
+gin-bin
+.air.toml

@@ -1,17 +1,19 @@
 package controller
 
 import (
-	"github.com/Shanwu404/TikTokLite/dao"
-	"github.com/Shanwu404/TikTokLite/service"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/Shanwu404/TikTokLite/dao"
+	"github.com/Shanwu404/TikTokLite/service"
+	"github.com/Shanwu404/TikTokLite/utils"
+	"github.com/gin-gonic/gin"
 )
 
 type MessageListResponse struct {
 	Response
-	MessageList []dao.Message
+	MessageList []MessageInfo `json:"message_list,omitempty"`
 }
 
 type MessageController struct {
@@ -50,16 +52,25 @@ func (ms *MessageController) MessageAction(c *gin.Context) {
 
 // MessageList GET /douyin/message/chat/ 聊天记录
 func (ms *MessageController) MessageList(c *gin.Context) {
-	msi := service.MessageServiceImpl{}
 	// 获取当前用户
 	userId := c.GetInt64("id")
 	// 获取接受用户
 	id := c.Query("to_user_id")
 	toUserId, _ := strconv.ParseInt(id, 10, 64)
-	messages := msi.QueryMessagesByIds(userId, toUserId)
+	messages := ms.messageService.QueryMessagesByIds(userId, toUserId)
+	messageList := make([]MessageInfo, 0)
+	for _, message := range messages {
+		messageList = append(messageList, MessageInfo{
+			Id:         message.Id,
+			ToUserId:   message.ToUserId,
+			FromUserId: message.FromUserId,
+			Content:    message.Content,
+			CreateTime: utils.TimeToStr(message.CreateTime),
+		})
+	}
 	c.JSON(http.StatusOK, MessageListResponse{
 		Response:    Response{StatusCode: 0, StatusMsg: "success"},
-		MessageList: messages,
+		MessageList: messageList,
 	})
 	return
 }
