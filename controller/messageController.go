@@ -5,15 +5,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/service"
-	"github.com/Shanwu404/TikTokLite/utils"
 	"github.com/gin-gonic/gin"
 )
 
 type MessageListResponse struct {
 	Response
-	MessageList []MessageInfo `json:"message_list,omitempty"`
+	MessageList []service.MessageParams `json:"message_list,omitempty"`
 }
 
 type MessageController struct {
@@ -38,11 +36,11 @@ func (ms *MessageController) MessageAction(c *gin.Context) {
 		toUserId, _ := strconv.ParseInt(id, 10, 64)
 		// 获取内容
 		content := c.Query("content")
-		message := dao.Message{
+		message := service.MessageParams{
 			ToUserId:   toUserId,
 			FromUserId: userId,
 			Content:    content,
-			CreateTime: time.Now(),
+			CreateTime: time.Now().Unix(),
 		}
 		_, code, messgae := msi.PublishMessage(message)
 		c.JSON(http.StatusOK, Response{StatusCode: code, StatusMsg: messgae})
@@ -58,19 +56,9 @@ func (ms *MessageController) MessageList(c *gin.Context) {
 	id := c.Query("to_user_id")
 	toUserId, _ := strconv.ParseInt(id, 10, 64)
 	messages := ms.messageService.QueryMessagesByIds(userId, toUserId)
-	messageList := make([]MessageInfo, 0)
-	for _, message := range messages {
-		messageList = append(messageList, MessageInfo{
-			Id:         message.Id,
-			ToUserId:   message.ToUserId,
-			FromUserId: message.FromUserId,
-			Content:    message.Content,
-			CreateTime: utils.TimeToStr(message.CreateTime),
-		})
-	}
 	c.JSON(http.StatusOK, MessageListResponse{
 		Response:    Response{StatusCode: 0, StatusMsg: "success"},
-		MessageList: messageList,
+		MessageList: messages,
 	})
 	return
 }

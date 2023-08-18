@@ -12,20 +12,23 @@ func NewMessageService() MessageService {
 	return &MessageServiceImpl{}
 }
 
-func (MessageServiceImpl) QueryMessagesByIds(fromUserId int64, toUserId int64) []dao.Message {
+func (MessageServiceImpl) QueryMessagesByIds(fromUserId int64, toUserId int64) []MessageParams {
 	messages, err := dao.QueryMessagesByIds(fromUserId, toUserId)
 	if err != nil {
 		log.Println("error:", err.Error())
-		return messages
+	}
+	results := make([]MessageParams, 0, len(messages))
+	for i := range messages {
+		results = append(results, MessageParams(messages[i]))
 	}
 	log.Println("Query messages successfully!")
-	return messages
+	return results
 }
 
-func (MessageServiceImpl) PublishMessage(message dao.Message) (int64, int32, string) {
-	message, err := dao.InsertMessage(message)
+func (MessageServiceImpl) PublishMessage(message MessageParams) (int64, int32, string) {
+	messageNew, err := dao.InsertMessage(dao.Message(message))
 	if err != nil {
 		return -1, 1, "Publish message failed!"
 	}
-	return message.Id, 0, "Publish message successfully!"
+	return messageNew.Id, 0, "Publish message successfully!"
 }
