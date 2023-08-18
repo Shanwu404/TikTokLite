@@ -6,11 +6,11 @@ import (
 )
 
 type Message struct {
-	Id         int64
-	ToUserId   int64
-	FromUserId int64
-	Content    string
-	CreateTime time.Time
+	Id         int64     `json:"id"`
+	ToUserId   int64     `json:"to_user_id"`
+	FromUserId int64     `json:"from_user_id"`
+	Content    string    `json:"content"`
+	CreateTime time.Time `json:"create_time"`
 }
 
 // QueryMessagesByIds 根据fromUserId和toUserId获取所有消息记录

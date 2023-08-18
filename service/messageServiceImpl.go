@@ -1,8 +1,9 @@
 package service
 
 import (
-	"github.com/Shanwu404/TikTokLite/dao"
 	"log"
+
+	"github.com/Shanwu404/TikTokLite/dao"
 )
 
 type MessageServiceImpl struct{}
@@ -15,6 +16,7 @@ func (MessageServiceImpl) QueryMessagesByIds(fromUserId int64, toUserId int64) [
 	messages, err := dao.QueryMessagesByIds(fromUserId, toUserId)
 	if err != nil {
 		log.Println("error:", err.Error())
+		return messages
 	}
 	log.Println("Query messages successfully!")
 	return messages

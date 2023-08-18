@@ -20,10 +20,10 @@ type UserInfo struct {
 }
 
 type CommentInfo struct {
-	Id         int64 `json:"id"`
-	User       UserInfo
-	Content    string `json:"content"`
-	CreateDate string `json:"create_date"`
+	Id         int64    `json:"id"`
+	User       UserInfo `json:"user"`
+	Content    string   `json:"content"`
+	CreateDate string   `json:"create_date"`
 }
 
 type VideoInfo struct {
@@ -34,4 +34,12 @@ type VideoInfo struct {
 	FavoriteCount int64
 	CommentCount  int64
 	IsFavorite    int64
+}
+
+type MessageInfo struct {
+	Id         int64  `json:"id"`
+	ToUserId   int64  `json:"to_user_id"`
+	FromUserId int64  `json:"from_user_id"`
+	Content    string `json:"content"`
+	CreateTime string `json:"create_time"`
 }
