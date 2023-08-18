@@ -29,6 +29,3 @@ videos/
 # air
 tmp/
 
-# gin
-gin-bin
-.air.toml
