@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/service"
 	"github.com/Shanwu404/TikTokLite/utils"
 	"github.com/gin-gonic/gin"
@@ -51,7 +50,7 @@ func (cc *CommentController) CommentAction(c *gin.Context) {
 		videoId, _ := strconv.ParseInt(id, 10, 64)
 		video := cc.videoService.QueryVideoById(videoId)
 		t := time.Now()
-		comment := dao.Comment{
+		comment := service.CommentParams{
 			UserId:     userId,
 			VideoId:    videoId,
 			Content:    content,

@@ -12,22 +12,25 @@ func NewCommentService() CommentService {
 	return &CommentServiceImpl{}
 }
 
-func (CommentServiceImpl) QueryCommentsByVideoId(id int64) []dao.Comment {
+func (CommentServiceImpl) QueryCommentsByVideoId(id int64) []CommentParams {
 	comments, err := dao.QueryCommentsByVideoId(id)
 	if err != nil {
 		log.Println("error:", err.Error())
-		return comments
+	}
+	results := make([]CommentParams, 0, len(comments))
+	for i := range comments {
+		results = append(results, CommentParams(comments[i]))
 	}
 	log.Println("Query comments successfully!")
-	return comments
+	return results
 }
 
-func (CommentServiceImpl) PostComment(comment dao.Comment) (int64, int32, string) {
-	comment, err := dao.InsertComment(comment)
+func (CommentServiceImpl) PostComment(comment CommentParams) (int64, int32, string) {
+	commentNew, err := dao.InsertComment(dao.Comment(comment))
 	if err != nil {
 		return -1, 1, "Post comment failed!"
 	}
-	return comment.Id, 0, "Post comment successfully!"
+	return commentNew.Id, 0, "Post comment successfully!"
 }
 
 func (CommentServiceImpl) DeleteComment(id int64) (int32, string) {
