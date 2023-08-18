@@ -11,7 +11,7 @@ import (
 
 type MessageListResponse struct {
 	Response
-	MessageList []service.MessageParams `json:"message_list,omitempty"`
+	MessageList []MessageInfo `json:"message_list,omitempty"`
 }
 
 type MessageController struct {
@@ -40,7 +40,7 @@ func (ms *MessageController) MessageAction(c *gin.Context) {
 			ToUserId:   toUserId,
 			FromUserId: userId,
 			Content:    content,
-			CreateTime: time.Now().Unix(),
+			CreateTime: time.Now(),
 		}
 		_, code, messgae := msi.PublishMessage(message)
 		c.JSON(http.StatusOK, Response{StatusCode: code, StatusMsg: messgae})
@@ -56,9 +56,19 @@ func (ms *MessageController) MessageList(c *gin.Context) {
 	id := c.Query("to_user_id")
 	toUserId, _ := strconv.ParseInt(id, 10, 64)
 	messages := ms.messageService.QueryMessagesByIds(userId, toUserId)
+	messageList := make([]MessageInfo, 0, len(messages))
+	for _, message := range messages {
+		messageList = append(messageList, MessageInfo{
+			Id:         message.Id,
+			ToUserId:   message.ToUserId,
+			FromUserId: message.FromUserId,
+			Content:    message.Content,
+			CreateTime: message.CreateTime.Unix(),
+		})
+	}
 	c.JSON(http.StatusOK, MessageListResponse{
 		Response:    Response{StatusCode: 0, StatusMsg: "success"},
-		MessageList: messages,
+		MessageList: messageList,
 	})
 	return
 }
