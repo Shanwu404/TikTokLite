@@ -28,7 +28,7 @@ func Auth(c *gin.Context) {
 	}
 	if len(signaturedString) == 0 && c.Request.URL.Path == "/douyin/feed/" {
 		log.Println("Feeding without token.")
-		c.Next()
+		return
 	}
 	if len(signaturedString) == 0 {
 		c.Abort()
@@ -53,7 +53,7 @@ func Auth(c *gin.Context) {
 		log.Println("Token Right:", claims.Name, claims.Id)
 		c.Set("username", claims.Name)
 		c.Set("id", claims.Id)
-		c.Next()
+		return
 	default:
 		log.Println("Token Error.")
 		c.AbortWithStatusJSON(
