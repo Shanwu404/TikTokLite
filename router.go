@@ -21,7 +21,7 @@ func NewRouter() *gin.Engine {
 	// basic apis
 	apiRouter.GET("/feed/", auth.Auth, videoController.Feed)
 	apiRouter.POST("/publish/action/", auth.Auth, videoController.PublishAction)
-	apiRouter.POST("/publish/list/", auth.Auth, videoController.PublishList)
+	apiRouter.GET("/publish/list/", auth.Auth, videoController.PublishList)
 
 	apiRouter.POST("/user/register/", userController.Register)
 	apiRouter.POST("/user/login/", userController.Login)
