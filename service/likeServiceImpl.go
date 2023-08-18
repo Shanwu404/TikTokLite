@@ -102,6 +102,7 @@ func (like LikeServiceImpl) IsLike(videoId int64, userId int64) (bool, error) {
 	return false, nil
 }
 
+/*获取视频videoId的点赞数*/
 func (like LikeServiceImpl) CountLikes(videoId int64) int64 {
 	cnt, err := dao.CountLikes(videoId)
 	if err != nil {
@@ -112,8 +113,22 @@ func (like LikeServiceImpl) CountLikes(videoId int64) int64 {
 	return cnt
 }
 
-/*获取用户userId的获取的点赞总数*/
-//func (like LikeServiceImpl) TotalLiked(userId int64) int64 {
-//videoIdList := VideoServiceImpl{}.GetVideoIdListByUserId(userId)
-//listlLen := len(videoIdList)
-//videoLikecountList := make([]int64,listlLen)
+/*获取用户userId发布视频的总被赞数*/
+func (like LikeServiceImpl) TotalFavorited(userId int64) int64 {
+	// 获取该用户发布的所有视频
+	videos := dao.QueryVideosByAuthorId(userId)
+
+	totalFavorites := int64(0)
+
+	// 遍历所有视频，获取每个视频的点赞数
+	for _, video := range videos {
+		likesForVideo, err := dao.CountLikes(video.ID) // 假设video有一个ID字段
+		if err != nil {
+			log.Println("Error counting likes for video ID:", video.ID, "Error:", err)
+			continue // 如果发生错误, 记录错误并继续处理下一个视频
+		}
+		totalFavorites += likesForVideo
+	}
+
+	return totalFavorites
+}
