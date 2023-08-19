@@ -19,7 +19,7 @@ func (MessageServiceImpl) QueryMessagesByIdsAfter(fromUserId int64, toUserId int
 	if err != nil {
 		log.Println("error:", err.Error())
 	}
-	if len(messages) > 0 {
+	if len(messages) > 0 && msgTime.UnixMilli() != 0 {
 		messages = messages[1:]
 	}
 	results := make([]MessageParams, 0, len(messages))
