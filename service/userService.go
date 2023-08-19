@@ -2,6 +2,7 @@ package service
 
 import "github.com/Shanwu404/TikTokLite/dao"
 
+// 新增UserInfoParams结构体,避免暴露dao.UserInfo结构体
 type UserInfoParams struct {
 	Id              int64  `json:"id"`               // 用户ID
 	Username        string `json:"name"`             // 用户名

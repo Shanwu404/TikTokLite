@@ -5,7 +5,7 @@ type Response struct {
 	StatusMsg  string `json:"status_msg"`
 }
 
-// 此结构体将弃用
+// 此结构体将弃用, 请使用service.UserInfoParams
 type UserInfo struct {
 	Id              int64  `json:"id"`               // 用户ID
 	Username        string `json:"name"`             // 用户名

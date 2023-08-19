@@ -165,16 +165,15 @@ func (us *UserServiceImpl) QueryUserInfoByID(userId int64) (UserInfoParams, erro
 	videos := us.videoService.GetVideoListByUserId(userId)
 	workCount := int64(len(videos))
 
-	// 在这里，我使用了你原来的硬编码的头像和背景图片，但建议从数据库或其他服务中获取
 	userInfo := UserInfoParams{
 		Id:              user.ID,
 		Username:        user.Username,
 		FollowCount:     followCount,
 		FollowerCount:   followerCount,
-		IsFollow:        false, // 这个值可能也需要从其他地方获取
+		IsFollow:        false, // 注意这个值需要根据具体情况修改
 		Avatar:          "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171029672.jpg",
 		BackgroundImage: "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171007006.jpg",
-		Signature:       "这个人很懒，什么都没有留下", // 这个值可能也需要从数据库或其他地方获取
+		Signature:       "这个人很懒，什么都没有留下",
 		TotalFavorited:  totalFavorited,
 		WorkCount:       workCount,
 		FavoriteCount:   favoriteCount,
