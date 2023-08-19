@@ -16,6 +16,7 @@ func NewMessageService() MessageService {
 func (MessageServiceImpl) QueryMessagesByIdsAfter(fromUserId int64, toUserId int64, timestamp int64) []MessageParams {
 	msgTime := time.UnixMilli(timestamp)
 	messages, err := dao.QueryMessagesByIdsAfter(fromUserId, toUserId, msgTime)
+	messages = messages[1:]
 	if err != nil {
 		log.Println("error:", err.Error())
 	}

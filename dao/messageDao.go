@@ -17,8 +17,8 @@ type Message struct {
 func QueryMessagesByIdsAfter(fromUserId int64, toUserId int64, createdTime time.Time) ([]Message, error) {
 	var messages []Message
 	if err := db.
-		Where("to_user_id = ? AND from_user_id = ? AND create_time > ?", toUserId, fromUserId, createdTime).
-		Or("to_user_id = ? AND from_user_id = ? AND create_time > ?", fromUserId, toUserId, createdTime).
+		Where("to_user_id = ? AND from_user_id = ? AND create_time >= ?", toUserId, fromUserId, createdTime).
+		Or("to_user_id = ? AND from_user_id = ? AND create_time >= ?", fromUserId, toUserId, createdTime).
 		Find(&messages).Error; err != nil {
 		log.Println(err)
 		return messages, err
