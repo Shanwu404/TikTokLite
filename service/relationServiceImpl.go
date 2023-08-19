@@ -7,21 +7,18 @@ import (
 )
 
 type RelationServiceImpl struct {
-	UserService *UserServiceImpl
 }
 
-func NewRelationService() *RelationServiceImpl {
-	return &RelationServiceImpl{
-		UserService: &UserServiceImpl{},
-	}
+func NewRelationService() RelationService {
+	return &RelationServiceImpl{}
 }
 
 func (rs *RelationServiceImpl) Follow(userId int64, followId int64) (bool, error) {
 	// 检查用户是否存在
-
-	if isExisted := rs.UserService.IsUserIdExist(followId); !isExisted {
+	usi := NewUserService()
+	if isExisted := usi.IsUserIdExist(followId); !isExisted {
 		return false, fmt.Errorf("user %d does not exist", followId)
-	} else if isExisted = rs.UserService.IsUserIdExist(userId); !isExisted {
+	} else if isExisted = usi.IsUserIdExist(userId); !isExisted {
 		return false, fmt.Errorf("user %d does not exist", userId)
 	}
 

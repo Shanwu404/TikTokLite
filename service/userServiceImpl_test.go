@@ -51,3 +51,11 @@ func TestComparePasswords(t *testing.T) {
 		fmt.Println("密码不匹配.")
 	}
 }
+
+func TestQueryUserInfoByID(t *testing.T) {
+	UserServiceImplInit()
+	usi := NewUserService()
+	userInfo, err := usi.QueryUserInfoByID(1)
+	fmt.Println(userInfo)
+	fmt.Println(err)
+}

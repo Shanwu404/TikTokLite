@@ -11,23 +11,18 @@ import (
 type RelationController struct {
 	userService     service.UserService
 	relationService service.RelationService
-	/* 获取UserInfo所需要的接口 */
-	videoService service.VideoService
-	likeService  service.LikeService
 }
 
 func NewRelationController() *RelationController {
 	return &RelationController{
 		userService:     service.NewUserService(),
 		relationService: service.NewRelationService(),
-		videoService:    service.NewVideoService(),
-		likeService:     service.NewLikeService(),
 	}
 }
 
 type UserListResponse struct {
 	Response
-	UserList []UserInfo `json:"user_list"`
+	UserList []service.UserInfoParams `json:"user_list"`
 }
 
 // RelationAction POST /douyin/relation/action/ 关注/取消关注
@@ -118,9 +113,9 @@ func (rc *RelationController) FollowsList(c *gin.Context) {
 	}
 
 	// 4. 将用户关注列表转换为UserInfo列表
-	var userInfoList []UserInfo
+	var userInfoList []service.UserInfoParams
 	for _, followId := range followList {
-		UserInfo := rc.completeUserInfo(followId)
+		UserInfo, _ := rc.userService.QueryUserInfoByID(followId)
 		UserInfo.IsFollow, _ = rc.relationService.IsFollowed(userId, followId)
 		userInfoList = append(userInfoList, UserInfo)
 	}
@@ -166,9 +161,9 @@ func (rc *RelationController) FollowersList(c *gin.Context) {
 	}
 
 	// 4. 将用户粉丝列表转换为UserInfo列表
-	var userInfoList []UserInfo
+	var userInfoList []service.UserInfoParams
 	for _, followerId := range followerList {
-		UserInfo := rc.completeUserInfo(followerId)
+		UserInfo, _ := rc.userService.QueryUserInfoByID(followerId)
 		UserInfo.IsFollow, _ = rc.relationService.IsFollowed(userId, followerId)
 		userInfoList = append(userInfoList, UserInfo)
 	}
@@ -215,9 +210,9 @@ func (rc *RelationController) FriendList(c *gin.Context) {
 	}
 
 	// 4. 将用户好友列表转换为UserInfo列表
-	var userInfoList []UserInfo
+	var userInfoList []service.UserInfoParams
 	for _, friendId := range friendList {
-		UserInfo := rc.completeUserInfo(friendId)
+		UserInfo, _ := rc.userService.QueryUserInfoByID(friendId)
 		UserInfo.IsFollow = true // 好友列表中的用户一定是关注了当前用户的
 		userInfoList = append(userInfoList, UserInfo)
 	}
@@ -229,28 +224,4 @@ func (rc *RelationController) FriendList(c *gin.Context) {
 		},
 		UserList: userInfoList,
 	})
-}
-
-/*--------------------------------组装用户信息----------------------------*/
-func (rc *RelationController) completeUserInfo(userId int64) UserInfo {
-	user, _ := rc.userService.QueryUserByID(userId)
-	followCount, _ := rc.relationService.CountFollows(userId)
-	followerCount, _ := rc.relationService.CountFollowers(userId)
-	workCount := int64(len(rc.videoService.GetVideoListByUserId(userId)))
-	favoriteCount, _ := rc.likeService.LikeVideoCount(userId)
-	totalFavotited := rc.likeService.TotalFavorited(userId)
-
-	return UserInfo{
-		Id:              user.ID,
-		Username:        user.Username,
-		FollowCount:     followCount,
-		FollowerCount:   followerCount,
-		IsFollow:        false, // 注意用户关系需要在具体函数内单独处理
-		Avatar:          "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171029672.jpg",
-		BackgroundImage: "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171007006.jpg",
-		Signature:       "TikTokLite Signature",
-		TotalFavorited:  totalFavotited,
-		WorkCount:       workCount,
-		FavoriteCount:   favoriteCount,
-	}
 }
