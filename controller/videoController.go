@@ -44,8 +44,11 @@ func (vc *VideoController) Feed(c *gin.Context) {
 	//目前客户端可缓存30个视频
 	videosWithAuthorID := vc.videoService.GetMultiVideoBefore(latestTime, FeedLimit)
 	nextTimeInt := time.Now().Unix()
-	if len(videosWithAuthorID) > 0 {
+	if len(videosWithAuthorID) == FeedLimit && FeedLimit > 0 {
 		nextTimeInt = videosWithAuthorID[len(videosWithAuthorID)-1].PublishTime.Unix()
+	}
+	if len(videosWithAuthorID) < FeedLimit {
+		nextTimeInt = 0
 	}
 	videoList := make([]Video, len(videosWithAuthorID))
 
