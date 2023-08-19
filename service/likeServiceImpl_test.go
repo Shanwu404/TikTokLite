@@ -28,9 +28,9 @@ func TestLikeServiceImpl_Unlike(t *testing.T) {
 func TestLikeServiceImpl_GetLikeLists(t *testing.T) {
 	LikeServiceImplInit()
 	lsi := LikeServiceImpl{}
-	likes, err := lsi.GetLikeLists(1000)
+	likes := lsi.GetLikeLists(1000)
 	fmt.Println(likes)
-	fmt.Println(err)
+
 }
 
 func TestLikeServiceImpl_IsLike(t *testing.T) {
@@ -40,10 +40,10 @@ func TestLikeServiceImpl_IsLike(t *testing.T) {
 	fmt.Println(flag, err)
 }
 
-func TestLikeServiceImpl_LikeCount(t *testing.T) {
+func TestLikeServiceImpl_CountLikes(t *testing.T) {
 	LikeServiceImplInit()
 	lsi := LikeServiceImpl{}
-	cnt, err := lsi.LikeCount(1000)
+	cnt, err := lsi.CountLikes(1000)
 	fmt.Println(cnt, err)
 }
 
