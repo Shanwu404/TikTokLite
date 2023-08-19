@@ -66,7 +66,7 @@ func (ms *MessageController) MessageList(c *gin.Context) {
 			ToUserId:   message.ToUserId,
 			FromUserId: message.FromUserId,
 			Content:    message.Content,
-			CreateTime: message.CreateTime.Unix(),
+			CreateTime: message.CreateTime.UnixMilli(),
 		})
 	}
 	c.JSON(http.StatusOK, MessageListResponse{
