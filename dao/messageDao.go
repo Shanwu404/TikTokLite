@@ -19,6 +19,7 @@ func QueryMessagesByIdsAfter(fromUserId int64, toUserId int64, createdTime time.
 	if err := db.
 		Where("to_user_id = ? AND from_user_id = ? AND create_time >= ?", toUserId, fromUserId, createdTime).
 		Or("to_user_id = ? AND from_user_id = ? AND create_time >= ?", fromUserId, toUserId, createdTime).
+		Order("create_time ASC").
 		Find(&messages).Error; err != nil {
 		log.Println(err)
 		return messages, err
