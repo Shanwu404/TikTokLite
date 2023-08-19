@@ -43,8 +43,8 @@ func TestLikeServiceImpl_IsLike(t *testing.T) {
 func TestLikeServiceImpl_CountLikes(t *testing.T) {
 	LikeServiceImplInit()
 	lsi := LikeServiceImpl{}
-	cnt, err := lsi.CountLikes(1000)
-	fmt.Println(cnt, err)
+	cnt := lsi.CountLikes(1000)
+	fmt.Println(cnt)
 }
 
 func TestTotalFavorited(t *testing.T) {

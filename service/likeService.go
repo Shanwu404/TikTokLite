@@ -9,7 +9,7 @@ type LikeService interface {
 	Unlike(userId int64, videoId int64) error
 
 	//获取视频videoId的点赞
-	CountLikes(videoId int64) (int64, error)
+	CountLikes(videoId int64) int64
 
 	// 功能：获取点赞列表
 	GetLikeLists(userId int64) []VideoParams

@@ -41,10 +41,6 @@ func (like LikeServiceImpl) Unlike(userId int64, videoId int64) error {
 /*获取点赞列表, 返回的是视频的详细信息*/
 func (like LikeServiceImpl) GetLikeLists(userId int64) []VideoParams {
 	videos := like.videoService.GetVideoListByUserId(userId)
-	// if err != nil {
-	// 	log.Println("the like list getting error:", err.Error())
-	// 	// return VideoParams, err
-	// }
 	results := make([]VideoParams, 0, len(videos))
 	for i := range videos {
 		results = append(results, VideoParams(videos[i]))
@@ -92,14 +88,14 @@ func (like LikeServiceImpl) IsLike(videoId int64, userId int64) (bool, error) {
 }
 
 /*获取视频videoId的点赞数*/
-func (like LikeServiceImpl) CountLikes(videoId int64) (int64, error) {
+func (like LikeServiceImpl) CountLikes(videoId int64) int64 {
 	cnt, err := dao.CountLikes(videoId)
 	if err != nil {
 		log.Println("count from db error:", err)
-		return 0, err
+		return 0
 	}
 	log.Println("count likes successfully!")
-	return cnt, nil
+	return cnt
 }
 
 /*获取用户userId发布视频的总被赞数*/
