@@ -7,7 +7,7 @@ import (
 // 定义用户信息结构体
 type UserInfo struct {
 	Id              int64  `json:"id"`               // 用户ID
-	Username        string `json:"username"`         // 用户名
+	Username        string `json:"name"`             // 用户名
 	FollowCount     int64  `json:"follow_count"`     // 关注数
 	FollowerCount   int64  `json:"follower_count"`   // 粉丝数
 	IsFollow        bool   `json:"is_follow"`        // 是否关注

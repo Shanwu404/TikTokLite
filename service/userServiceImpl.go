@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"unicode"
 
@@ -11,10 +12,17 @@ import (
 )
 
 type UserServiceImpl struct {
+	relationService RelationService
+	videoService    VideoService
+	likeService     LikeService
 }
 
 func NewUserService() UserService {
-	return &UserServiceImpl{}
+	return &UserServiceImpl{
+		relationService: NewRelationService(),
+		videoService:    NewVideoService(),
+		likeService:     NewLikeService(),
+	}
 }
 
 // QueryUserByName 根据name获取User对象
@@ -127,6 +135,54 @@ func (us *UserServiceImpl) IsUserIdExist(id int64) bool {
 	log.Printf("User ID %d exists: %t\n", id, isExisted)
 	return isExisted
 }
+
+// QueryUserInfoByID 根据用户ID查询用户信息
+func (us *UserServiceImpl) QueryUserInfoByID(userId int64) (UserInfoParams, error) {
+	log.Println("Querying userinfo by ID:", userId)
+	user, err := us.QueryUserByID(userId)
+	if err != nil {
+		return UserInfoParams{}, fmt.Errorf("error querying user by ID: %w", err)
+	}
+	log.Println(user)
+
+	followCount, err := us.relationService.CountFollows(userId)
+	if err != nil {
+		return UserInfoParams{}, fmt.Errorf("error counting follows: %w", err)
+	}
+
+	followerCount, err := us.relationService.CountFollowers(userId)
+	if err != nil {
+		return UserInfoParams{}, fmt.Errorf("error counting followers: %w", err)
+	}
+
+	favoriteCount, err := us.likeService.LikeVideoCount(userId)
+	if err != nil {
+		return UserInfoParams{}, fmt.Errorf("error counting favorite videos: %w", err)
+	}
+
+	totalFavorited := us.likeService.TotalFavorited(userId)
+
+	videos := us.videoService.GetVideoListByUserId(userId)
+	workCount := int64(len(videos))
+
+	// 在这里，我使用了你原来的硬编码的头像和背景图片，但建议从数据库或其他服务中获取
+	userInfo := UserInfoParams{
+		Id:              user.ID,
+		Username:        user.Username,
+		FollowCount:     followCount,
+		FollowerCount:   followerCount,
+		IsFollow:        false, // 这个值可能也需要从其他地方获取
+		Avatar:          "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171029672.jpg",
+		BackgroundImage: "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171007006.jpg",
+		Signature:       "这个人很懒，什么都没有留下", // 这个值可能也需要从数据库或其他地方获取
+		TotalFavorited:  totalFavorited,
+		WorkCount:       workCount,
+		FavoriteCount:   favoriteCount,
+	}
+	return userInfo, nil
+}
+
+/*------------------------ 以下为工具函数 ------------------------*/
 
 func isValidUsername(username string) bool {
 	// 用户名长度限制为3-12个字符

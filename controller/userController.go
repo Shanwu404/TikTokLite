@@ -12,24 +12,17 @@ import (
 
 type UserController struct {
 	userService service.UserService
-	/* 获取UserInfo所需要的接口 */
-	relationService service.RelationService
-	videoService    service.VideoService
-	likeService     service.LikeService // 未开发
 }
 
 func NewUserController() *UserController {
 	return &UserController{
-		userService:     service.NewUserService(),
-		relationService: service.NewRelationService(),
-		videoService:    service.NewVideoService(),
-		likeService:     service.NewLikeService(),
+		userService: service.NewUserService(),
 	}
 }
 
 type UserResponse struct {
 	Response
-	UserInfo UserInfo `json:"user"`
+	UserInfo service.UserInfoParams `json:"user"` // 新的userinfo结构体
 }
 
 type LoginResponse struct {
@@ -118,33 +111,9 @@ func (uc *UserController) GetUserInfo(c *gin.Context) {
 		}
 	}
 
-	userinfo := uc.completeUserInfo(userId)
+	userinfo, _ := uc.userService.QueryUserInfoByID(userId)
 	c.JSON(http.StatusOK, UserResponse{
 		Response: Response{StatusCode: 0},
 		UserInfo: userinfo,
 	})
-}
-
-/*--------------------------------组装用户信息----------------------------*/
-func (uc *UserController) completeUserInfo(userId int64) UserInfo {
-	user, _ := uc.userService.QueryUserByID(userId)
-	followCount, _ := uc.relationService.CountFollows(userId)
-	followerCount, _ := uc.relationService.CountFollowers(userId)
-	workCount := int64(len(uc.videoService.GetVideoListByUserId(userId)))
-	favoriteCount, _ := uc.likeService.LikeVideoCount(userId)
-	totalFavorited := uc.likeService.TotalFavorited(userId)
-
-	return UserInfo{
-		Id:              user.ID,
-		Username:        user.Username,
-		FollowCount:     followCount,
-		FollowerCount:   followerCount,
-		IsFollow:        false,
-		Avatar:          "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171029672.jpg",
-		BackgroundImage: "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171007006.jpg",
-		Signature:       "TikTokLite Signature",
-		TotalFavorited:  totalFavorited,
-		WorkCount:       workCount,
-		FavoriteCount:   favoriteCount,
-	}
 }

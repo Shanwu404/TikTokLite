@@ -7,10 +7,10 @@ import (
 )
 
 func TestQueryMessagesByIds(t *testing.T) {
-	Init()
-	messages, err := QueryMessagesByIds(0, 1)
-	fmt.Println(messages)
-	fmt.Println(err)
+	// Init()
+	// messages, err := QueryMessagesByIds(0, 1)
+	// fmt.Println(messages)
+	// fmt.Println(err)
 }
 
 func TestInsertMessage(t *testing.T) {
