@@ -2,6 +2,7 @@ package service
 
 import (
 	"log"
+	"time"
 
 	"github.com/Shanwu404/TikTokLite/dao"
 )
@@ -12,8 +13,9 @@ func NewMessageService() MessageService {
 	return &MessageServiceImpl{}
 }
 
-func (MessageServiceImpl) QueryMessagesByIds(fromUserId int64, toUserId int64) []MessageParams {
-	messages, err := dao.QueryMessagesByIds(fromUserId, toUserId)
+func (MessageServiceImpl) QueryMessagesByIdsAfter(fromUserId int64, toUserId int64, timestamp int64) []MessageParams {
+	msgTime := time.Unix(timestamp, 0)
+	messages, err := dao.QueryMessagesByIdsAfter(fromUserId, toUserId, msgTime)
 	if err != nil {
 		log.Println("error:", err.Error())
 	}
