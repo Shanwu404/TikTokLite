@@ -92,7 +92,7 @@ func (rc *RelationController) FollowsList(c *gin.Context) {
 		c.JSON(http.StatusOK, UserListResponse{
 			Response: Response{
 				StatusCode: -1,
-				StatusMsg:  "user_id error",
+				StatusMsg:  "由于该用户隐私设置, 关注列表不可见",
 			},
 			UserList: nil,
 		})
@@ -140,7 +140,7 @@ func (rc *RelationController) FollowersList(c *gin.Context) {
 		c.JSON(http.StatusOK, UserListResponse{
 			Response: Response{
 				StatusCode: -1,
-				StatusMsg:  "user_id error",
+				StatusMsg:  "由于该用户隐私设置, 粉丝列表不可见",
 			},
 			UserList: nil,
 		})
