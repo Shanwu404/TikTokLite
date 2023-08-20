@@ -49,7 +49,11 @@ func NewStaticCredentialsProvider(credential credentials.Credential) Credentials
 	}
 }
 
-func NewBucket() (*oss.Bucket, error) {
+type MyBucket struct {
+	*oss.Bucket
+}
+
+func NewBucket() (*MyBucket, error) {
 	config := new(credentials.Config).
 		// 指定Credential类型，固定值为ecs_ram_role。
 		SetType("ecs_ram_role").
@@ -72,7 +76,7 @@ func NewBucket() (*oss.Bucket, error) {
 		log.Println("Error:", err)
 		return nil, err
 	}
-	return bucket, nil
+	return &MyBucket{bucket}, nil
 	// 填写本地文件的完整路径，例如D:\\localpath\\examplefile.txt。
 	// fd, err := os.Open("go.sum")
 	// if err != nil {
@@ -83,26 +87,24 @@ func NewBucket() (*oss.Bucket, error) {
 
 }
 
-func UploadVideo(file *multipart.FileHeader, filename string) (string, error) {
-	bucket, err := NewBucket()
-	if err != nil {
-		return "", err
-	}
+func (mb *MyBucket) UploadVideo(file *multipart.FileHeader, internalURL string) error {
 	// 将文件流上传至exampledir目录下的exampleobject.txt文件。
 	fileStrem, err := file.Open()
 	if err != nil {
-		return "", err
+		return err
 	}
-	filename = "videos/" + filename
-	err = bucket.PutObject(filename, fileStrem)
+	err = mb.PutObject(internalURL, fileStrem)
 	if err != nil {
 		log.Println("Error:", err)
-		return "", err
+		return err
 	}
+	return nil
+}
+
+func (mb *MyBucket) ObjectExternalURL(internalURL string) (signedURL string, err error) {
 	// 生成用于下载的签名URL，并指定签名URL的有效时间为60秒。
-	var signedURL string
 	for i := 0; i < 5; i++ {
-		signedURL, err = bucket.SignURL(filename, oss.HTTPGet, 600)
+		signedURL, err = mb.SignURL(internalURL, oss.HTTPGet, 600)
 		if err != nil {
 			log.Println("Error when get video URL:", err)
 			continue
