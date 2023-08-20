@@ -64,24 +64,14 @@ func (cc *CommentController) CommentAction(c *gin.Context) {
 			})
 			return
 		}
-		user, _ := cc.userService.QueryUserByID(userId)
-		followCount, _ := cc.relationService.CountFollows(user.ID)
-		followerCount, _ := cc.relationService.CountFollowers(user.ID)
-		isFollowed, _ := cc.relationService.IsFollowed(user.ID, video.AuthorID)
-		favoriteCount, _ := cc.likeService.LikeVideoCount(user.ID)
+		userInfo, _ := cc.userService.QueryUserInfoByID(userId)
+		isFollow, _ := cc.relationService.IsFollowed(userId, video.AuthorID)
+		userInfo.IsFollow = isFollow
 		c.JSON(http.StatusOK, CommentActionResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 			CommentInfo: CommentInfo{
-				Id: commentId,
-				User: UserInfo{
-					Id:            user.ID,
-					Username:      user.Username,
-					FollowCount:   followCount,
-					FollowerCount: followerCount,
-					IsFollow:      isFollowed,
-					WorkCount:     int64(len(cc.videoService.GetVideoListByUserId(user.ID))),
-					FavoriteCount: favoriteCount,
-				},
+				Id:         commentId,
+				User:       userInfo,
 				Content:    content,
 				CreateDate: utils.TimeToStr(t),
 			},
@@ -108,21 +98,12 @@ func (cc *CommentController) CommentList(c *gin.Context) {
 		if err != nil {
 			continue
 		}
-		followCount, _ := cc.relationService.CountFollows(user.ID)
-		followerCount, _ := cc.relationService.CountFollowers(user.ID)
-		isFollowed, _ := cc.relationService.IsFollowed(user.ID, video.AuthorID)
-		favoriteCount, _ := cc.likeService.LikeVideoCount(user.ID)
+		userInfo, _ := cc.userService.QueryUserInfoByID(user.ID)
+		isFollow, _ := cc.relationService.IsFollowed(user.ID, video.AuthorID)
+		userInfo.IsFollow = isFollow
 		commonList = append(commonList, CommentInfo{
-			Id: comment.Id,
-			User: UserInfo{
-				Id:            user.ID,
-				Username:      user.Username,
-				FollowCount:   followCount,
-				FollowerCount: followerCount,
-				IsFollow:      isFollowed,
-				WorkCount:     int64(len(cc.videoService.GetVideoListByUserId(user.ID))),
-				FavoriteCount: favoriteCount,
-			},
+			Id:         comment.Id,
+			User:       userInfo,
 			Content:    comment.Content,
 			CreateDate: utils.TimeToStr(comment.CreateDate),
 		})

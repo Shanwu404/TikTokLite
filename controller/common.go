@@ -1,5 +1,7 @@
 package controller
 
+import "github.com/Shanwu404/TikTokLite/service"
+
 type Response struct {
 	StatusCode int32  `json:"status_code"`
 	StatusMsg  string `json:"status_msg"`
@@ -21,10 +23,10 @@ type UserInfo struct {
 }
 
 type CommentInfo struct {
-	Id         int64    `json:"id"`
-	User       UserInfo `json:"user"`
-	Content    string   `json:"content"`
-	CreateDate string   `json:"create_date"`
+	Id         int64                  `json:"id"`
+	User       service.UserInfoParams `json:"user"`
+	Content    string                 `json:"content"`
+	CreateDate string                 `json:"create_date"`
 }
 
 type VideoInfo struct {
