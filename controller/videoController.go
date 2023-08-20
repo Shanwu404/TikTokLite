@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -56,8 +57,9 @@ func (vc *VideoController) Feed(c *gin.Context) {
 	for i := range videosWithAuthorID {
 		authorInfo := UserInfo{Id: videosWithAuthorID[i].AuthorID}
 		vc.completeUserInfo(&authorInfo, userId)
-		vc.combineVideoAndAuthor(&videosWithAuthorID[i], &authorInfo, &videoList[i])
+		vc.combineVideoAndAuthor(&videosWithAuthorID[i], &authorInfo, &videoList[i], userId)
 	}
+	fmt.Println(videoList)
 	c.JSON(http.StatusOK, douyinFeedResponse{
 		Response:  Response{0, "Feeding Succeeded."},
 		NextTime:  nextTimeInt,
@@ -118,20 +120,20 @@ func (vc *VideoController) PublishList(c *gin.Context) {
 	vc.completeUserInfo(&authorInfo, userId)
 	videoList := make([]Video, len(userWorks))
 	for i := range userWorks {
-		vc.combineVideoAndAuthor(&userWorks[i], &authorInfo, &videoList[i])
+		vc.combineVideoAndAuthor(&userWorks[i], &authorInfo, &videoList[i], userId)
 	}
 	c.JSON(http.StatusOK, douyinPublishListResponse{
 		Response:  Response{0, "Get Publish List."},
 		VideoList: videoList,
 	})
-
+	return
 }
 
 // --------------------------------
 // 这部分工具函数也要跟随组装数据代码一起放入单独一层
 
-func (vc *VideoController) combineVideoAndAuthor(video *service.VideoParams, author *UserInfo, result *Video) {
-	flag, _ := vc.likeService.IsLike(video.ID, author.Id)
+func (vc *VideoController) combineVideoAndAuthor(video *service.VideoParams, author *UserInfo, result *Video, userId int64) {
+	flag, _ := vc.likeService.IsLike(video.ID, userId)
 	*result = Video{
 		ID:            video.ID,
 		Author:        *author,
