@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -59,7 +58,6 @@ func (vc *VideoController) Feed(c *gin.Context) {
 		vc.completeUserInfo(&authorInfo, userId)
 		vc.combineVideoAndAuthor(&videosWithAuthorID[i], &authorInfo, &videoList[i], userId)
 	}
-	fmt.Println(videoList)
 	c.JSON(http.StatusOK, douyinFeedResponse{
 		Response:  Response{0, "Feeding Succeeded."},
 		NextTime:  nextTimeInt,
@@ -126,7 +124,6 @@ func (vc *VideoController) PublishList(c *gin.Context) {
 		Response:  Response{0, "Get Publish List."},
 		VideoList: videoList,
 	})
-	return
 }
 
 // --------------------------------
