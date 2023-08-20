@@ -74,28 +74,27 @@ func (vc *VideoController) PublishAction(c *gin.Context) {
 		return
 	}
 	filename := c.GetString("username") + "_" + req.Title + "_" + time.Now().Format("20060102150405")
-	err := c.SaveUploadedFile(req.Data, "videos/"+filename)
-	// err := vc.videoService.StoreVideo(req.Data, c.GetString("username"), filename)
+	// err := c.SaveUploadedFile(req.Data, "videos/"+filename)
+	author, err := vc.userService.QueryUserByUsername(c.GetString("username"))
 	if err != nil {
-		log.Println("Uploading failed:" + err.Error())
+		log.Println("[PublishAction]Error when query userID:", err)
 		c.JSON(http.StatusInternalServerError, douyinPublishActionResponse{
-			Response: Response{1, "Uploading Failed."},
+			Response: Response{2, "Recording Failed."},
 		})
 		return
 	}
-	author, _ := vc.userService.QueryUserByUsername(c.GetString("username"))
 	video := service.VideoParams{
 		AuthorID:    author.ID,
-		PlayURL:     "http://47.94.162.202:8080/douyin/tiktok/" + filename,
+		PlayURL:     "",
 		CoverURL:    "",
 		PublishTime: time.Now().Truncate(time.Second),
 		Title:       req.Title,
 	}
-	err = vc.videoService.InsertVideosTable(&video)
+	err = vc.videoService.StoreVideo(req.Data, filename, &video)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("Uploading failed:" + err.Error())
 		c.JSON(http.StatusInternalServerError, douyinPublishActionResponse{
-			Response: Response{2, "Recording Failed."},
+			Response: Response{1, "Uploading Failed."},
 		})
 		return
 	}

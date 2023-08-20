@@ -1,15 +1,12 @@
 package service
 
 import (
-	"bytes"
-	"errors"
-	"io"
 	"log"
-	"os"
-	"strconv"
+	"mime/multipart"
 	"time"
 
 	"github.com/Shanwu404/TikTokLite/dao"
+	"github.com/Shanwu404/TikTokLite/utils/aliyun/ossClient"
 )
 
 type VideoServiceImpl struct {
@@ -29,43 +26,17 @@ func (vService *VideoServiceImpl) GetMultiVideoBefore(latestTimestamp int64, cou
 	return videoSlc
 }
 
-func (vService *VideoServiceImpl) StoreVideo(data []byte, username string, fileName string) error {
-	// 暂时存在本地，TODO:对象存储
-	fileName = time.Now().Truncate(time.Second).Format("20060102150405") +
-		"_" + username + "_" + fileName
-
-	nameLimit := 999
-	for i := 0; i <= nameLimit; i++ {
-		if i > 0 {
-			fileName = fileName + "(" + strconv.Itoa(i) + ")"
-		}
-		_, err := os.Stat(fileName)
-		switch {
-		case err == nil && i == nameLimit:
-			log.Printf("File '%s' exists\n", fileName)
-			return errors.New("too many files with that name already exists")
-		case err == nil && i < nameLimit:
-			continue
-		case os.IsNotExist(err):
-			log.Printf("Saving file as %v.\n", fileName)
-			file, err := os.Create(fileName)
-			if err != nil {
-				log.Println("Error creating file:", err.Error())
-				return err
-			}
-			defer file.Close()
-
-			bytesWritten, err := io.Copy(file, bytes.NewReader(data))
-			if err != nil {
-				log.Println("Error writing data to file:", err.Error())
-				return err
-			}
-			log.Println("Succeed! Bytes written:", bytesWritten)
-			return nil
-		default:
-			log.Println("Error:", err.Error())
-			return err
-		}
+func (vService *VideoServiceImpl) StoreVideo(dataHeader *multipart.FileHeader, fileName string, video *VideoParams) error {
+	videoURL, err := ossClient.UploadVideo(dataHeader, fileName)
+	if err != nil {
+		log.Println("Upload video failed:", err)
+		return err
+	}
+	video.PlayURL = videoURL
+	err = vService.InsertVideosTable(video)
+	if err != nil {
+		log.Println("Insert video table failed:", err)
+		return err
 	}
 	return nil
 }

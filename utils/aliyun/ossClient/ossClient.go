@@ -1,4 +1,4 @@
-package ossclient
+package ossClient
 
 import (
 	"log"
