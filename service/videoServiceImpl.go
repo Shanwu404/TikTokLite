@@ -9,6 +9,11 @@ import (
 	"github.com/Shanwu404/TikTokLite/utils/aliyun/ossClient"
 )
 
+const (
+	internal = "Internal"
+	external = "External"
+)
+
 type VideoServiceImpl struct {
 }
 
@@ -17,7 +22,7 @@ func NewVideoService() VideoService {
 }
 
 func (vService *VideoServiceImpl) GetMultiVideoBefore(latestTimestamp int64, count int) []VideoParams {
-	mb, err := ossClient.NewBucket()
+	mb, err := ossClient.NewBucket(external)
 	if err != nil {
 		log.Println("Get bucket error:", err)
 		return []VideoParams{}
@@ -36,7 +41,7 @@ func (vService *VideoServiceImpl) GetMultiVideoBefore(latestTimestamp int64, cou
 }
 
 func (vService *VideoServiceImpl) StoreVideo(dataHeader *multipart.FileHeader, fileName string, video *VideoParams) error {
-	mb, err := ossClient.NewBucket()
+	mb, err := ossClient.NewBucket(internal)
 	if err != nil {
 		log.Println("Get bucket error:", err)
 		return err
@@ -74,7 +79,7 @@ func (vService *VideoServiceImpl) InsertVideosTable(video *VideoParams) error {
 
 // TODO: 分页查询
 func (vService *VideoServiceImpl) GetVideoListByUserId(AuthorID int64) []VideoParams {
-	mb, err := ossClient.NewBucket()
+	mb, err := ossClient.NewBucket(external)
 	if err != nil {
 		log.Println("Get bucket error:", err)
 		return []VideoParams{}
@@ -92,7 +97,7 @@ func (vService *VideoServiceImpl) GetVideoListByUserId(AuthorID int64) []VideoPa
 }
 
 func (vService *VideoServiceImpl) QueryVideoById(videoID int64) VideoParams {
-	mb, err := ossClient.NewBucket()
+	mb, err := ossClient.NewBucket(external)
 	if err != nil {
 		log.Println("Get bucket error:", err)
 		return VideoParams{}

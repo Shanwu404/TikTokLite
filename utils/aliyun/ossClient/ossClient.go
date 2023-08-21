@@ -53,7 +53,7 @@ type MyBucket struct {
 	*oss.Bucket
 }
 
-func NewBucket() (*MyBucket, error) {
+func NewBucket(mode string) (*MyBucket, error) {
 	config := new(credentials.Config).
 		// 指定Credential类型，固定值为ecs_ram_role。
 		SetType("ecs_ram_role").
@@ -65,7 +65,7 @@ func NewBucket() (*MyBucket, error) {
 		return nil, err
 	}
 	provider := NewStaticCredentialsProvider(ecsCredential)
-	client, err := oss.New(os.Getenv("EndPoint"), "", "", oss.SetCredentialsProvider(&provider))
+	client, err := oss.New(os.Getenv("EndPoint"+mode), "", "", oss.SetCredentialsProvider(&provider))
 	if err != nil {
 		log.Println("Error:", err)
 		return nil, err
