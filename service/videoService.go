@@ -1,6 +1,9 @@
 package service
 
-import "time"
+import (
+	"mime/multipart"
+	"time"
+)
 
 type VideoParams struct {
 	ID          int64
@@ -28,7 +31,7 @@ type VideoService interface {
 	InsertVideosTable(video *VideoParams) error
 
 	// 存储视频文件
-	StoreVideo(data []byte, username string, fileName string) error
+	StoreVideo(dataHeader *multipart.FileHeader, fileName string, video *VideoParams) error
 
 	// 统计用户id的作品数
 	// WorkCount(id int64) int
