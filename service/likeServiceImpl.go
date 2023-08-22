@@ -7,17 +7,19 @@ import (
 )
 
 type LikeServiceImpl struct {
-	videoService *VideoServiceImpl
+	videoService    VideoService
+	relationService RelationService
 }
 
 func NewLikeService() LikeService {
 	return &LikeServiceImpl{
-		videoService: &VideoServiceImpl{},
+		videoService:    NewVideoService(),
+		relationService: NewRelationService(),
 	}
 }
 
 /*点赞*/
-func (like LikeServiceImpl) Like(userId int64, videoId int64) error {
+func (like *LikeServiceImpl) Like(userId int64, videoId int64) error {
 	err := dao.InsertLike(&dao.Like{UserId: userId, VideoId: videoId})
 	if err != nil {
 		log.Println("the like operation error:", err.Error())
@@ -28,7 +30,7 @@ func (like LikeServiceImpl) Like(userId int64, videoId int64) error {
 }
 
 /*取消点赞*/
-func (like LikeServiceImpl) Unlike(userId int64, videoId int64) error {
+func (like *LikeServiceImpl) Unlike(userId int64, videoId int64) error {
 	err := dao.DeleteLike(userId, videoId)
 	if err != nil {
 		log.Println("the unlike operation error:", err.Error())
@@ -39,18 +41,21 @@ func (like LikeServiceImpl) Unlike(userId int64, videoId int64) error {
 }
 
 /*获取点赞列表, 返回的是视频的详细信息*/
-func (like LikeServiceImpl) GetLikeLists(userId int64) []VideoParams {
-	videos := like.videoService.GetVideoListByUserId(userId)
+func (like *LikeServiceImpl) GetLikeLists(userId int64) []VideoParams {
+	videos, _ := dao.GetLikeVideoIdList(userId)
 	results := make([]VideoParams, 0, len(videos))
-	for i := range videos {
-		results = append(results, VideoParams(videos[i]))
+	for _, video := range videos {
+		log.Println(int64(video))
+		result := like.videoService.QueryVideoById(int64(video))
+		results = append(results, VideoParams(result))
 	}
 	log.Println("like list getting successfully!")
+	//log.Println(like.videoService.QueryVideoById(1))
 	return results
 }
 
 /*增加视频videoId的点赞数*/
-func (like LikeServiceImpl) addVideoLikeCount(videoId int64, sum *int64) {
+func (like *LikeServiceImpl) addVideoLikeCount(videoId int64, sum *int64) {
 	count, err := dao.CountLikes(videoId)
 	if err != nil {
 		log.Println("video likes adding failed")
@@ -61,7 +66,7 @@ func (like LikeServiceImpl) addVideoLikeCount(videoId int64, sum *int64) {
 }
 
 /*获取用户userId喜欢的视频数量*/
-func (like LikeServiceImpl) LikeVideoCount(userId int64) (int64, error) {
+func (like *LikeServiceImpl) LikeVideoCount(userId int64) (int64, error) {
 	likevideoIdList, err1 := dao.GetLikeVideoIdList(userId)
 	if err1 != nil {
 		log.Println("Failed to get the likes video id list")
@@ -73,22 +78,22 @@ func (like LikeServiceImpl) LikeVideoCount(userId int64) (int64, error) {
 }
 
 /*判断用户userId是否点赞视频videoId*/
-func (like LikeServiceImpl) IsLike(videoId int64, userId int64) (bool, error) {
+func (like *LikeServiceImpl) IsLike(videoId int64, userId int64) bool {
 	videoIdList, err := dao.GetLikeVideoIdList(userId)
 	if err != nil {
 		log.Println("Failed to get the likes video id list")
-		return false, err
+		return false
 	}
 	for _, vId := range videoIdList {
 		if vId == videoId {
-			return true, nil
+			return true
 		}
 	}
-	return false, nil
+	return false
 }
 
 /*获取视频videoId的点赞数*/
-func (like LikeServiceImpl) CountLikes(videoId int64) int64 {
+func (like *LikeServiceImpl) CountLikes(videoId int64) int64 {
 	cnt, err := dao.CountLikes(videoId)
 	if err != nil {
 		log.Println("count from db error:", err)
@@ -99,7 +104,7 @@ func (like LikeServiceImpl) CountLikes(videoId int64) int64 {
 }
 
 /*获取用户userId发布视频的总被赞数*/
-func (like LikeServiceImpl) TotalFavorited(userId int64) int64 {
+func (like *LikeServiceImpl) TotalFavorited(userId int64) int64 {
 	// 获取该用户发布的所有视频
 	videos := dao.QueryVideosByAuthorId(userId)
 

@@ -10,7 +10,7 @@ import (
 
 type FavoriteListResponse struct {
 	Response
-	VideoInfo []VideoInfo
+	VideoList []Video `json:"video_list,omitempty"`
 }
 
 type LikeController struct {
@@ -18,6 +18,7 @@ type LikeController struct {
 	userService     service.UserService
 	relationService service.RelationService
 	likeService     service.LikeService
+	commentService  service.CommentService
 }
 
 func NewLikeController() *LikeController {
@@ -26,6 +27,7 @@ func NewLikeController() *LikeController {
 		userService:     service.NewUserService(),
 		relationService: service.NewRelationService(),
 		likeService:     service.NewLikeService(),
+		commentService:  service.NewCommentService(),
 	}
 }
 
@@ -52,36 +54,37 @@ func (lc *LikeController) FavoriteAction(c *gin.Context) {
 
 // FavoriteList GET /douyin/favorite/list/ 喜欢列表
 func (lc *LikeController) FavoriteList(c *gin.Context) {
-	vsi := service.VideoServiceImpl{}
-	usi := service.UserServiceImpl{}
-	rsi := service.RelationServiceImpl{}
-	lsi := service.LikeServiceImpl{}
+	var videoList []Video
 
-	id := c.Query("user_id")
-	userId, _ := strconv.ParseInt(id, 10, 64)
-	videos := vsi.GetVideoListByUserId(userId)
-	var videoList []VideoInfo
-	for _, videoParam := range videos {
-		user, _ := usi.QueryUserByID(videoParam.AuthorID)
-		followCount, _ := rsi.CountFollows(user.ID)
-		followerCount, _ := rsi.CountFollowers(user.ID)
-		isFollowed, _ := rsi.IsFollowed(userId, user.ID)
-		favoriteCount, _ := lsi.LikeVideoCount(user.ID)
-		videoList = append(videoList, VideoInfo{
-			User: UserInfo{
-				Id:            user.ID,
-				Username:      user.Username,
-				FollowCount:   followCount,
-				FollowerCount: followerCount,
-				IsFollow:      isFollowed,
-				WorkCount:     int64(len(vsi.GetVideoListByUserId(user.ID))),
-				FavoriteCount: favoriteCount,
-			},
-		})
+	userId := c.GetInt64("user_id")
+	videos := lc.likeService.GetLikeLists(userId)
+	// var videoList = make([]Video, 0, len(videos))
+
+	for _, videoParam := range videos { //将视频的详细信息格式化
+
+		authorInfo, _ := lc.userService.QueryUserInfoByID(videoParam.AuthorID)
+		// authorInfo := UserInfo{Id: videoParam.AuthorID}
+		// vc.completeUserInfo(&authorInfo, userId)
+		authorInfo.FollowCount, _ = lc.relationService.CountFollows(authorInfo.Id)
+		authorInfo.FollowerCount, _ = lc.relationService.CountFollowers(authorInfo.Id)
+		authorInfo.IsFollow, _ = lc.relationService.IsFollowed(userId, authorInfo.Id)
+		authorInfo.WorkCount = int64(len(lc.videoService.GetVideoListByUserId(authorInfo.Id)))
+		authorInfo.FavoriteCount = lc.likeService.CountLikes(authorInfo.Id)
+		video := Video{
+			ID:            videoParam.ID,
+			Author:        UserInfo(authorInfo),
+			PlayURL:       videoParam.PlayURL,
+			CoverURL:      videoParam.CoverURL,
+			FavoriteCount: lc.likeService.CountLikes(videoParam.ID),
+			CommentCount:  lc.commentService.CountComments(videoParam.ID),
+			IsFavorite:    lc.likeService.IsLike(videoParam.ID, userId),
+			Title:         videoParam.Title,
+		}
+		videoList = append(videoList, video)
 	}
 	c.JSON(http.StatusOK, FavoriteListResponse{
 		Response:  Response{StatusCode: 0, StatusMsg: "success"},
-		VideoInfo: videoList,
+		VideoList: videoList,
 	})
 	return
 }
