@@ -55,7 +55,7 @@ func TestComparePasswords(t *testing.T) {
 func TestQueryUserInfoByID(t *testing.T) {
 	UserServiceImplInit()
 	usi := NewUserService()
-	userInfo, err := usi.QueryUserInfoByID(1)
+	userInfo, err := usi.QueryUserInfoByID(14)
 	fmt.Println(userInfo)
 	fmt.Println(err)
 }

@@ -27,7 +27,7 @@ func TestDeleteLike(t *testing.T) {
 
 func TestGetLikeVideoIdList(t *testing.T) {
 	Init()
-	list, err := GetLikeVideoIdList(1000)
+	list, err := GetLikeVideoIdList(1002)
 	fmt.Println(list)
 	fmt.Println(err)
 }
