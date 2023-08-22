@@ -129,7 +129,7 @@ func (vc *VideoController) PublishList(c *gin.Context) {
 // 这部分工具函数也要跟随组装数据代码一起放入单独一层
 
 func (vc *VideoController) combineVideoAndAuthor(video *service.VideoParams, author *UserInfo, result *Video, userId int64) {
-	flag, _ := vc.likeService.IsLike(video.ID, userId)
+	flag := vc.likeService.IsLike(video.ID, userId)
 	*result = Video{
 		ID:            video.ID,
 		Author:        *author,
