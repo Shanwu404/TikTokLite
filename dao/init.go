@@ -39,7 +39,8 @@ func Init() {
 	dsn := fmt.Sprintf(
 		"%s:%s@%s(%s:%d)/%s?charset=%s&parseTime=%t&loc=%s",
 		account, password, protocol, ip, port, databaseName, charset, parsetime, timeZone)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+	var err error
+	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
 	})
 	if err != nil {
