@@ -1,12 +1,17 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
+	"strconv"
+	"time"
 	"unicode"
 
 	"github.com/Shanwu404/TikTokLite/dao"
+	"github.com/Shanwu404/TikTokLite/middleware/redis"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -27,24 +32,61 @@ func NewUserService() UserService {
 
 // QueryUserByName 根据name获取User对象
 func (us *UserServiceImpl) QueryUserByUsername(username string) (dao.User, error) {
-	log.Println("Querying user by name:", username)
+	log.Println("INFO: Querying user by name: ", username)
+
+	// 尝试从Redis中获取用户信息
+	redisKey := "user:name:" + username
+	userData, err := redis.RDb.Get(redis.Ctx, redisKey).Result()
+	if err == nil && userData != "" {
+		// 解析Redis中的数据到User对象
+		var user dao.User
+		err := json.Unmarshal([]byte(userData), &user)
+		if err == nil {
+			log.Println("INFO: Query user successfully (Redis)! User queried by name: ", user.Username)
+			return user, nil
+		}
+	}
+
+	// 如果Redis中没有用户信息或解析失败，则从数据库中获取
 	user, err := dao.QueryUserByUsername(username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Println("Username does not exist: ", username)
+			log.Println("WARN: Username does not exist: ", username)
 			return dao.User{}, err
 		}
-		log.Println("Error querying user by name:", username, err)
+		log.Println("ERROR: Error querying user by name:", username, err)
 		return dao.User{}, err
 	}
 	user.Password = "" // 屏蔽密码
-	log.Println("Query user successfully! User queried by name:", user)
+
+	// 将用户信息存入Redis
+	redisKey = "user:name:" + user.Username
+	userBytes, err := json.Marshal(user)
+	if err == nil {
+		redis.RDb.Set(redis.Ctx, redisKey, userBytes, 2*time.Hour)
+	}
+	log.Println("INFO: Query user successfully (MySQL)! User queried by name: ", user.Username)
 	return user, nil
 }
 
 // QueryUserByID 根据id获取User对象 屏蔽密码
 func (us *UserServiceImpl) QueryUserByID(id int64) (dao.User, error) {
-	log.Println("Querying user by ID:", id)
+	log.Println("INFO: Querying user by ID:", id)
+
+	// 尝试从Redis中获取用户信息
+	redisKey := "user:id:" + strconv.FormatInt(id, 10)
+	userData, err := redis.RDb.Get(redis.Ctx, redisKey).Result()
+	if err == nil && userData != "" {
+		// 解析Redis中的数据到User对象
+		var user dao.User
+		err := json.Unmarshal([]byte(userData), &user)
+		if err == nil {
+			log.Println("INFO: Query user successfully (Redis)! User queried by ID: ", id)
+			return user, nil
+		}
+	}
+
+	// 如果Redis中没有用户信息或解析失败，则从数据库中获取
 	user, err := dao.QueryUserByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -55,7 +97,13 @@ func (us *UserServiceImpl) QueryUserByID(id int64) (dao.User, error) {
 		return dao.User{}, err
 	}
 	user.Password = "" // 屏蔽密码
-	log.Println("Query user successfully! User queried by ID:", user)
+
+	// 将用户信息存入Redis
+	userBytes, err := json.Marshal(user)
+	if err == nil {
+		redis.RDb.Set(redis.Ctx, redisKey, userBytes, 2*time.Hour)
+	}
+	log.Println("INFO: Query user successfully (MySQL)! User queried by ID: ", user)
 	return user, nil
 }
 
@@ -64,17 +112,28 @@ func (us *UserServiceImpl) Register(username string, password string) (int64, in
 
 	// 验证用户名和密码的合法性
 	if !isValidUsername(username) {
-		log.Println("Invalid username format:", username)
+		log.Println("WARN: Invalid username format:", username)
 		return -1, 1, "Invalid username format!"
 	}
 	if !isValidPassword(password) {
-		log.Println("Invalid password format")
+		log.Println("WARN: Invalid password format")
 		return -1, 1, "Invalid password format!"
 	}
 
-	log.Println("Registering user:", username)
-	user, err := dao.QueryUserByUsername(username)
+	log.Println("INFO: Registering user:", username)
 
+	// 获取分布式锁
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	value := strconv.Itoa(r.Int())
+	lock := redis.Lock("register_lock:"+username, value)
+	if !lock {
+		log.Println("WARN: Failed to get distributed lock")
+		return -1, 1, "Username registration underway. Please try later."
+	}
+	defer redis.Unlock("register_lock:" + username)
+
+	// 检查用户名是否已存在
+	user, err := us.QueryUserByUsername(username)
 	if err == nil && user.Username != "" {
 		log.Println("User already exists:", username)
 		return -1, 1, "User already exist!"
@@ -86,38 +145,47 @@ func (us *UserServiceImpl) Register(username string, password string) (int64, in
 		return -1, 1, "Incorrect password format!"
 	}
 
-	newUser := dao.User{ // 创建一个指向User的指针
+	newUser := dao.User{
 		Username: username,
 		Password: encoderPassword,
 	}
 
 	err = dao.InsertUser(newUser)
 	if err != nil {
-		log.Println("User registration error:", err)
+		log.Println("ERROR: User registration error:", err)
 		return 0, 1, "User registration failed!"
 	}
 
-	log.Println("User registered successfully:", newUser)
+	// 将用户信息存入Redis
+	redisIdKey := "user:id:" + strconv.FormatInt(newUser.ID, 10)
+	redisNameKey := "user:name:" + newUser.Username
+	userBytes, err := json.Marshal(newUser)
+	if err == nil {
+		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, 2*time.Hour)
+		redis.RDb.Set(redis.Ctx, redisNameKey, userBytes, 2*time.Hour)
+	}
+
+	log.Println("INFO: User registered successfully:", newUser.Username)
 	return newUser.ID, 0, "Register successfully!"
 }
 
 // Login 用户登录，返回状态码和状态信息
 func (us *UserServiceImpl) Login(username string, password string) (int32, string) {
-	log.Println("Attempting login for user:", username)
+	log.Println("INFO: Attempting login for user:", username)
 
 	// 验证用户名和密码的合法性
 	if !isValidUsername(username) {
-		log.Println("Invalid username format:", username)
+		log.Println("WARN: Invalid username format:", username)
 		return 1, "Invalid username format!"
 	}
 	if !isValidPassword(password) {
-		log.Println("Invalid password format")
+		log.Println("WARN: Invalid password format")
 		return 1, "Invalid password format!"
 	}
 
 	user, err := dao.QueryUserByUsername(username)
 	if err != nil {
-		log.Println("User login error:", err)
+		log.Println("ERROR: User login error:", err)
 		return 1, "User doesn't exist!"
 	}
 
