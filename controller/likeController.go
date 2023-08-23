@@ -56,7 +56,13 @@ func (lc *LikeController) FavoriteAction(c *gin.Context) {
 func (lc *LikeController) FavoriteList(c *gin.Context) {
 	var videoList []Video
 
-	userId := c.GetInt64("user_id")
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, FavoriteListResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "Invalid value."},
+		})
+		return
+	}
 	videos := lc.likeService.GetLikeLists(userId)
 	// var videoList = make([]Video, 0, len(videos))
 
@@ -86,5 +92,4 @@ func (lc *LikeController) FavoriteList(c *gin.Context) {
 		Response:  Response{StatusCode: 0, StatusMsg: "success"},
 		VideoList: videoList,
 	})
-	return
 }

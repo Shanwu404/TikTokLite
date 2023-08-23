@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+
+	"github.com/Shanwu404/TikTokLite/config"
 	"github.com/Shanwu404/TikTokLite/dao"
 )
 
@@ -9,7 +12,8 @@ func main() {
 	initDeps()
 	//utils.FakeComments(10)
 
-	err := r.Run() // listen and serve on listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	port := config.HTTPServer.Port
+	err := r.Run(fmt.Sprintf(":%d", port)) // listen and serve on listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	if err != nil {
 		return
 	}

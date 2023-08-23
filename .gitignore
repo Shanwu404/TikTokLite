@@ -29,3 +29,5 @@ videos/
 # air
 tmp/
 
+# config file
+*.toml

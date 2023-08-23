@@ -73,5 +73,4 @@ func (ms *MessageController) MessageList(c *gin.Context) {
 		Response:    Response{StatusCode: 0, StatusMsg: "success"},
 		MessageList: messageList,
 	})
-	return
 }
