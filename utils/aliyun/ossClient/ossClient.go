@@ -3,8 +3,8 @@ package ossClient
 import (
 	"log"
 	"mime/multipart"
-	"os"
 
+	"github.com/Shanwu404/TikTokLite/config"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/aliyun/credentials-go/credentials"
 )
@@ -53,42 +53,35 @@ type MyBucket struct {
 	*oss.Bucket
 }
 
+var myConfig = config.OSS
+
 func NewBucket(mode string) (*MyBucket, error) {
 	config := new(credentials.Config).
 		// 指定Credential类型，固定值为ecs_ram_role。
-		SetType("ecs_ram_role").
+		SetType(myConfig.CredentialType).
 		// （可选项）指定角色名称。如果不指定，OSS会自动获取角色。强烈建议指定角色名称，以降低请求次数。
-		SetRoleName(os.Getenv("AliyunRoleName"))
+		SetRoleName(myConfig.CredentialRoleName)
 
 	ecsCredential, err := credentials.NewCredential(config)
 	if err != nil {
 		return nil, err
 	}
 	provider := NewStaticCredentialsProvider(ecsCredential)
-	client, err := oss.New(os.Getenv("EndPoint"+mode), "", "", oss.SetCredentialsProvider(&provider))
+	client, err := oss.New(myConfig.Endpoint[mode], "", "", oss.SetCredentialsProvider(&provider))
 	if err != nil {
 		log.Println("Error:", err)
 		return nil, err
 	}
 	// 存储空间名称
-	bucket, err := client.Bucket(os.Getenv("BucketName"))
+	bucket, err := client.Bucket(myConfig.BucketName)
 	if err != nil {
 		log.Println("Error:", err)
 		return nil, err
 	}
 	return &MyBucket{bucket}, nil
-	// 填写本地文件的完整路径，例如D:\\localpath\\examplefile.txt。
-	// fd, err := os.Open("go.sum")
-	// if err != nil {
-	// 	fmt.Println("Error:", err)
-	// 	os.Exit(-1)
-	// }
-	// defer fd.Close()
-
 }
 
 func (mb *MyBucket) UploadVideo(file *multipart.FileHeader, internalURL string) error {
-	// 将文件流上传至exampledir目录下的exampleobject.txt文件。
 	fileStrem, err := file.Open()
 	if err != nil {
 		return err
