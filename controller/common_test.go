@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -28,7 +27,7 @@ func SendRequest(method string, url string, Body io.Reader) {
 			return
 		}
 	}(res.Body)
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
 		return
