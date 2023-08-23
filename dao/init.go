@@ -1,10 +1,12 @@
 package dao
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
 
+	"github.com/Shanwu404/TikTokLite/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -22,7 +24,21 @@ func Init() {
 		},
 	)
 
-	dsn := "tiktokDEV:qxy2023@tcp(47.94.162.202:3306)/tiktokLite?charset=utf8mb4&parseTime=True&loc=Local"
+	var (
+		account      = config.Database.Account
+		password     = config.Database.Password
+		ip           = config.Database.IP
+		port         = config.Database.Port
+		databaseName = config.Database.DatabaseName
+		protocol     = config.Database.Protocol
+		charset      = config.Database.Charset
+		parsetime    = config.Database.ParseTime
+		timeZone     = config.Database.TimeZone
+	)
+
+	dsn := fmt.Sprintf(
+		"%s:%s@%s(%s:%d)/%s?charset=%s&parseTime=%t&loc=%s",
+		account, password, protocol, ip, port, databaseName, charset, parsetime, timeZone)
 	var err error
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
