@@ -53,7 +53,7 @@ type MyBucket struct {
 	*oss.Bucket
 }
 
-var myConfig = config.OSS
+var myConfig = config.OSS()
 
 func NewBucket(mode string) (*MyBucket, error) {
 	config := new(credentials.Config).
