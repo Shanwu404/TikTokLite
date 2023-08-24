@@ -199,10 +199,31 @@ func (us *UserServiceImpl) Login(username string, password string) (int32, strin
 
 // IsUserIdExist 查询用户ID是否存在
 func (us *UserServiceImpl) IsUserIdExist(id int64) bool {
-	log.Println("Checking if user ID exists:", id)
-	isExisted := dao.IsUserIdExist(id)
-	log.Printf("User ID %d exists: %t\n", id, isExisted)
-	return isExisted
+	log.Println("INFO: Checking if user ID exists:", id)
+
+	// 尝试从Redis中获取用户信息
+	redisKey := "user:id:" + strconv.FormatInt(id, 10)
+	userData, err := redis.RDb.Get(redis.Ctx, redisKey).Result()
+	if err == nil && userData != "" {
+		// 说明Redis中存在该用户信息
+		log.Printf("INFO: User ID %d exists (Redis)\n", id)
+		return true
+	}
+
+	// 如果Redis中没有用户信息，则从数据库中获取
+	user, err := dao.QueryUserByID(id)
+	if err != nil {
+		log.Println("WARN: User ID not found:", id)
+		return false
+	}
+
+	// 将用户信息存入Redis
+	userBytes, err := json.Marshal(user)
+	if err == nil {
+		redis.RDb.Set(redis.Ctx, redisKey, userBytes, 2*time.Hour)
+	}
+	log.Printf("INFO: User ID %d exists (MySQL)\n", id)
+	return true
 }
 
 // QueryUserInfoByID 根据用户ID查询用户信息

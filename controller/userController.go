@@ -101,7 +101,6 @@ func (uc *UserController) GetUserInfo(c *gin.Context) {
 		return
 	}
 
-	uc.userService.IsUserIdExist(userId)
 	if isExisted := uc.userService.IsUserIdExist(userId); !isExisted {
 		{
 			c.JSON(http.StatusOK, UserResponse{
