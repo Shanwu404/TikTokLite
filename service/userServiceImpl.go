@@ -36,8 +36,8 @@ func (us *UserServiceImpl) QueryUserByUsername(username string) (dao.User, error
 	log.Println("INFO: Querying user by name: ", username)
 
 	// 尝试从Redis中获取用户ID
-	UserNameKey := utils.UserNameKey + username
-	userIDStr, err := redis.RDb.Get(redis.Ctx, UserNameKey).Result()
+	redisNameKey := utils.UserNameKey + username
+	userIDStr, err := redis.RDb.Get(redis.Ctx, redisNameKey).Result()
 	if err == nil && userIDStr != "" {
 		userID, err := strconv.ParseInt(userIDStr, 10, 64)
 		if err != nil {
@@ -60,7 +60,7 @@ func (us *UserServiceImpl) QueryUserByUsername(username string) (dao.User, error
 	user.Password = "" // 屏蔽密码
 
 	// 将用户ID存入Redis
-	redis.RDb.Set(redis.Ctx, UserNameKey, user.ID, 24*time.Hour)
+	redis.RDb.Set(redis.Ctx, redisNameKey, user.ID, 24*time.Hour)
 
 	// 将用户信息存入Redis
 	redisDataKey := "user:id:" + strconv.FormatInt(user.ID, 10)
@@ -77,8 +77,8 @@ func (us *UserServiceImpl) QueryUserByID(id int64) (dao.User, error) {
 	log.Println("INFO: Querying user by ID:", id)
 
 	// 尝试从Redis中获取用户信息
-	UserIdKey := utils.UserIdKey + strconv.FormatInt(id, 10)
-	userData, err := redis.RDb.Get(redis.Ctx, UserIdKey).Result()
+	redisIdKey := utils.UserIdKey + strconv.FormatInt(id, 10)
+	userData, err := redis.RDb.Get(redis.Ctx, redisIdKey).Result()
 	if err == nil && userData != "" {
 		// 解析Redis中的数据到User对象
 		var user dao.User
@@ -104,7 +104,7 @@ func (us *UserServiceImpl) QueryUserByID(id int64) (dao.User, error) {
 	// 将用户信息存入Redis
 	userBytes, err := json.Marshal(user)
 	if err == nil {
-		redis.RDb.Set(redis.Ctx, UserIdKey, userBytes, 24*time.Hour)
+		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, 24*time.Hour)
 	}
 	log.Println("INFO: Query user successfully (MySQL)! User queried by ID: ", user)
 	return user, nil
@@ -205,8 +205,8 @@ func (us *UserServiceImpl) IsUserIdExist(id int64) bool {
 	log.Println("INFO: Checking if user ID exists:", id)
 
 	// 尝试从Redis中获取用户信息
-	redisKey := "user:id:" + strconv.FormatInt(id, 10)
-	userData, err := redis.RDb.Get(redis.Ctx, redisKey).Result()
+	redisIdKey := "user:id:" + strconv.FormatInt(id, 10)
+	userData, err := redis.RDb.Get(redis.Ctx, redisIdKey).Result()
 	if err == nil && userData != "" {
 		// 说明Redis中存在该用户信息
 		log.Printf("INFO: User ID %d exists (Redis)\n", id)
@@ -224,7 +224,7 @@ func (us *UserServiceImpl) IsUserIdExist(id int64) bool {
 	// 将用户信息存入Redis
 	userBytes, err := json.Marshal(user)
 	if err == nil {
-		redis.RDb.Set(redis.Ctx, redisKey, userBytes, 24*time.Hour)
+		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, 24*time.Hour)
 	}
 	log.Printf("INFO: User ID %d exists (MySQL)\n", id)
 	return true
@@ -256,8 +256,9 @@ func (us *UserServiceImpl) QueryUserInfoByID(userId int64) (UserInfoParams, erro
 
 	totalFavorited := us.likeService.TotalFavorited(userId)
 
-	videos := us.videoService.GetVideoListByUserId(userId)
-	workCount := int64(len(videos))
+	// videos := us.videoService.GetVideoListByUserId(userId)
+	// workCount := int64(len(videos))
+	workCount := int64(10) // 临时设置
 
 	userInfo := UserInfoParams{
 		Id:              user.ID,
