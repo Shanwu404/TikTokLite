@@ -7,7 +7,7 @@ import (
 type User struct {
 	ID       int64
 	Username string
-	Password string
+	Password string `json:"-"`
 }
 
 // InsertUser 新增用户
