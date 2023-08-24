@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math/rand"
 	"sync"
@@ -16,9 +17,16 @@ var RDb *redis.Client
 var Ctx = context.Background()
 
 func InitRedis() {
+	var (
+		ip       = config.Redis.Redis_host
+		port     = config.Redis.Redis_port
+		password = config.Redis.Redis_password
+	)
+
+	addr := fmt.Sprintf("%s:%d", ip, port)
 	RDb = redis.NewClient(&redis.Options{
-		Addr:     config.Redis_host + ":" + config.Redis_port,
-		Password: config.Redis_password,
+		Addr:     addr,
+		Password: password,
 		DB:       0,
 	})
 	_, err := RDb.Ping(Ctx).Result()
