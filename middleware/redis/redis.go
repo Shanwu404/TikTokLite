@@ -16,13 +16,14 @@ var Ctx = context.Background()
 
 func InitRedis() {
 	RDb = redis.NewClient(&redis.Options{
-		Addr:     config.Redis_host + ":" + config.Redis_password,
+		Addr:     config.Redis_host + ":" + config.Redis_port,
 		Password: config.Redis_password,
 		DB:       0,
 	})
 	_, err := RDb.Ping(Ctx).Result()
 	if err != nil {
 		log.Println("err:", err.Error())
+		return
 	}
 	log.Println("Redis has connected!")
 }
