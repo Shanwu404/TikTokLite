@@ -16,7 +16,7 @@ func RelationServiceInit() {
 func TestRelationServiceImpl_Follow(t *testing.T) {
 	RelationServiceInit()
 	rsi := NewRelationService()
-	flag, err := rsi.Follow(3, 14)
+	flag, err := rsi.Follow(7, 14)
 	fmt.Println(flag, err)
 }
 
@@ -58,7 +58,7 @@ func TestRelationServiceImpl_GetFollowList(t *testing.T) {
 func TestRelationServiceImpl_GetFollowerList(t *testing.T) {
 	RelationServiceInit()
 	rsi := NewRelationService()
-	followerList, err := rsi.GetFollowerList(1000)
+	followerList, err := rsi.GetFollowerList(7)
 	fmt.Println(followerList, err)
 }
 
