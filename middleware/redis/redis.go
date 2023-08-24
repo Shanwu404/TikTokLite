@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"log"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -46,4 +47,9 @@ func Unlock(key string) bool {
 		return false
 	}
 	return true
+}
+
+func RandomTime() time.Duration {
+	rand.Seed(time.Now().Unix())
+	return time.Duration(rand.Int63n(25)) * time.Hour // 设置随机过期时间
 }
