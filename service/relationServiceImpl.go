@@ -2,8 +2,10 @@ package service
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Shanwu404/TikTokLite/dao"
+	"github.com/Shanwu404/TikTokLite/middleware/redis"
 )
 
 type RelationServiceImpl struct {
@@ -27,8 +29,8 @@ func (rs *RelationServiceImpl) Follow(userId int64, followId int64) (bool, error
 		return false, fmt.Errorf("can not follow yourself")
 	}
 
-	// 检查用户是否已经关注了followId
-	isFollowed, err := dao.IsFollowed(userId, followId)
+	// 检查是否已经关注了followId
+	isFollowed, err := rs.IsFollowed(userId, followId)
 	if err != nil {
 		return false, err
 	}
@@ -40,6 +42,11 @@ func (rs *RelationServiceImpl) Follow(userId int64, followId int64) (bool, error
 	if err := dao.InsertFollow(userId, followId); err != nil {
 		return false, err
 	}
+
+	// 将新关注关系添加到Redis缓存
+	redisKey := fmt.Sprintf("relation:follow:%d", userId)
+	redis.RDb.SAdd(redis.Ctx, redisKey, followId)
+	redis.RDb.Expire(redis.Ctx, redisKey, 2*time.Hour)
 
 	return true, nil
 }
@@ -59,14 +66,33 @@ func (rs *RelationServiceImpl) UnFollow(userId int64, followId int64) (bool, err
 		return false, err
 	}
 
+	// 从Redis中移除关注关系
+	redisKey := fmt.Sprintf("relation:follow:%d", userId)
+	redis.RDb.SRem(redis.Ctx, redisKey, followId)
+
 	return true, nil
 }
 
 func (rs *RelationServiceImpl) IsFollowed(userId int64, followId int64) (bool, error) {
-	// 检查用户是否已经关注了followId
-	isFollowed, err := dao.IsFollowed(userId, followId)
+	// 从Redis中查询关注关系
+	redisKey := fmt.Sprintf("relation:follow:%d", userId)
+	isFollowed, err := redis.RDb.SIsMember(redis.Ctx, redisKey, followId).Result()
+
+	if err == nil && isFollowed {
+		// 说明Redis中存在该关注关系
+		return true, nil
+	}
+
+	// 如果Redis中没有关注关系，则查询数据库
+	isFollowed, err = dao.IsFollowed(userId, followId)
 	if err != nil {
 		return false, err
+	}
+
+	// 如果数据库中存在关注关系，则将其存入Redis缓存
+	if isFollowed {
+		redis.RDb.SAdd(redis.Ctx, redisKey, followId)
+		redis.RDb.Expire(redis.Ctx, redisKey, 2*time.Hour)
 	}
 
 	return isFollowed, nil
