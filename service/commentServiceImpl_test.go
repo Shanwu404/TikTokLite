@@ -24,8 +24,8 @@ func TestCommentServiceImpl_PostComment(t *testing.T) {
 	CommentServiceImplInit()
 	csi := CommentServiceImpl{}
 	comment := CommentParams{
-		UserId:     2000,
-		VideoId:    2000,
+		UserId:     4000,
+		VideoId:    4000,
 		Content:    "test",
 		CreateDate: time.Now(),
 	}
@@ -36,6 +36,13 @@ func TestCommentServiceImpl_PostComment(t *testing.T) {
 func TestCommentServiceImpl_DeleteComment(t *testing.T) {
 	CommentServiceImplInit()
 	csi := CommentServiceImpl{}
-	code, message := csi.DeleteComment(48)
+	code, message := csi.DeleteComment(59)
 	fmt.Println(code, message)
+}
+
+func TestCommentServiceImpl_CountComments(t *testing.T) {
+	CommentServiceImplInit()
+	csi := CommentServiceImpl{}
+	cnt := csi.CountComments(0)
+	fmt.Println(cnt)
 }
