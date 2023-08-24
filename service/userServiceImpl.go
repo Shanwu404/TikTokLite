@@ -216,6 +216,7 @@ func (us *UserServiceImpl) IsUserIdExist(id int64) bool {
 		log.Println("WARN: User ID not found:", id)
 		return false
 	}
+	user.Password = "" // 屏蔽密码
 
 	// 将用户信息存入Redis
 	userBytes, err := json.Marshal(user)
