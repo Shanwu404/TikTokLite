@@ -6,6 +6,10 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+var Redis_host = "127.0.0.1"
+var Redis_port = "6379"
+var Redis_password = ""
+
 var AppConfig struct {
 	HTTPServer HTTPServerConfig
 	Database   DatabaseConfig
