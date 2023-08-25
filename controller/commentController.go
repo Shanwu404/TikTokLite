@@ -112,5 +112,4 @@ func (cc *CommentController) CommentList(c *gin.Context) {
 		Response:    Response{StatusCode: 0, StatusMsg: "success"},
 		CommentList: commonList,
 	})
-	return
 }

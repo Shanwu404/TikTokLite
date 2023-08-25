@@ -3,6 +3,7 @@ module github.com/Shanwu404/TikTokLite
 go 1.20
 
 require (
+	github.com/BurntSushi/toml v1.3.2
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.8+incompatible
 	github.com/aliyun/credentials-go v1.3.1
 	github.com/brianvoe/gofakeit/v6 v6.23.1

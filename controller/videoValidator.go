@@ -3,7 +3,6 @@ package controller
 
 import (
 	"mime/multipart"
-	"strconv"
 	"time"
 	"unicode/utf8"
 
@@ -87,10 +86,4 @@ func publishListParseAndValidateParams(c *gin.Context) (douyinPublishListRequest
 		return req, false
 	}
 	return req, true
-}
-
-func timeStampStr2Time(timeStampStr string) time.Time {
-	latestTimeStamp, _ := strconv.Atoi(timeStampStr)
-	latestTime := time.Unix(int64(latestTimeStamp), 0)
-	return latestTime
 }
