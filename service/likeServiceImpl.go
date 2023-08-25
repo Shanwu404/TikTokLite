@@ -2,8 +2,11 @@ package service
 
 import (
 	"log"
+	"strconv"
 
 	"github.com/Shanwu404/TikTokLite/dao"
+	"github.com/Shanwu404/TikTokLite/middleware/redis"
+	"github.com/Shanwu404/TikTokLite/utils"
 )
 
 type LikeServiceImpl struct {
@@ -20,13 +23,112 @@ func NewLikeService() LikeService {
 
 /*点赞*/
 func (like *LikeServiceImpl) Like(userId int64, videoId int64) error {
-	err := dao.InsertLike(&dao.Like{UserId: userId, VideoId: videoId})
-	if err != nil {
-		log.Println("the like operation error:", err.Error())
-		return err
+	strUserId := strconv.FormatInt(userId, 10)
+	strVideoId := strconv.FormatInt(videoId, 10)
+
+	key_userId := utils.Like_User_Key + strconv.FormatInt(userId, 10)
+	key_videoId := utils.Like_Video_key + strconv.FormatInt(videoId, 10)
+
+	//判断缓存中是否存在这个userid
+	//如果存在，就补充一个键值对
+	if n, err := redis.RDb.Exists(redis.Ctx, key_userId).Result(); n > 0 {
+		if err != nil {
+			log.Println("Redis query failed")
+			return err
+		}
+		if _, err := redis.RDb.SAdd(redis.Ctx, key_userId, strVideoId).Result(); err != nil {
+			log.Println("Redis add failed")
+			return err
+		} else { //添加进入数据库
+			err := dao.InsertLike(&dao.Like{UserId: userId, VideoId: videoId})
+			if err != nil {
+				log.Println("the like operation error:", err.Error())
+				return err
+			}
+			log.Println("Like operation successfully!")
+			return nil
+		}
+	} else { //如果不存在这个user，就新建空白键值对
+		redis.RDb.SAdd(redis.Ctx, key_userId, utils.MyDefault).Result()
+		//设置过期时间
+		redis.RDb.Expire(redis.Ctx, key_userId, redis.RandomTime()).Result()
+
+		//把数据库中的当前用户点赞的videoId全部添加到缓存中
+		videoIdList, err1 := dao.GetLikeVideoIdList(userId)
+		if err1 != nil {
+			log.Println("Failed to get the likes video id list")
+			redis.RDb.Del(redis.Ctx, key_userId)
+			return err1
+		}
+		for _, videoId := range videoIdList {
+			strvideoId := strconv.FormatInt(videoId, 10)
+			//如果出现一次不对的就把这个键值删除
+			if _, err := redis.RDb.SAdd(redis.Ctx, key_userId, strvideoId).Result(); err != nil {
+				log.Println("Failed to add cache for videoId")
+				redis.RDb.Del(redis.Ctx, key_userId)
+				return err
+			}
+		}
+		//把该次点赞的videoId添加到缓存中
+		if _, err := redis.RDb.SAdd(redis.Ctx, key_userId, strVideoId).Result(); err != nil {
+			log.Println("Failed to add cache for videoId")
+			redis.RDb.Del(redis.Ctx, key_userId)
+			return err
+		} else { //只有缓存中添加正确，才可以往数据库中添加
+			err := dao.InsertLike(&dao.Like{UserId: userId, VideoId: videoId})
+			if err != nil {
+				log.Println("the like operation error:", err.Error())
+				return err
+			}
+			log.Println("Like operation successfully!")
+		}
 	}
-	log.Println("Like operation successfully!")
+	//判断缓存中是否存在这个videoid
+	if n, err := redis.RDb.Exists(redis.Ctx, key_videoId).Result(); n > 0 {
+		if err != nil {
+			log.Println("Redis query failed")
+			return err
+		}
+		//如果在缓存中，则把当前点赞的strUserId添加到key为strVideoId的set中
+		if _, err := redis.RDb.SAdd(redis.Ctx, key_videoId, strUserId).Result(); err != nil {
+			log.Println("Redis add failed")
+			return err
+		}
+	} else {
+		if _, err := redis.RDb.SAdd(redis.Ctx, key_videoId, utils.MyDefault).Result(); err != nil {
+			log.Println("Cache creation key failed!")
+			redis.RDb.Del(redis.Ctx, key_videoId)
+			return err
+		}
+		if _, err := redis.RDb.Expire(redis.Ctx, key_videoId, redis.RandomTime()).Result(); err != nil {
+			log.Println("Failed to set cache expiration time")
+			redis.RDb.Del(redis.Ctx, key_videoId)
+			return err
+		}
+		//把数据库中给当前视频的点赞的userId全部添加到缓存中
+		userIdList, err1 := dao.GetLikeUserIdList(videoId)
+		if err1 != nil {
+			log.Println("Failed to get video id like user list")
+			redis.RDb.Del(redis.Ctx, key_videoId)
+			return err1
+		}
+		for _, userId := range userIdList {
+			struserid := strconv.FormatInt(userId, 10)
+			//如果出现一次不对的就把这个键值删除
+			if _, err := redis.RDb.SAdd(redis.Ctx, key_videoId, struserid).Result(); err != nil {
+				log.Println("Failed to add cache for videoId")
+				redis.RDb.Del(redis.Ctx, key_videoId)
+				return err
+			}
+		}
+		// if _, err := redis.RDb.SAdd(redis.Ctx, key_videoId, strUserId).Result(); err != nil {
+		// 	log.Println("Failed to add cache for videoId")
+		// 	redis.RDb.Del(redis.Ctx, key_videoId)
+		// 	return err
+		// }
+	}
 	return nil
+
 }
 
 /*取消点赞*/
