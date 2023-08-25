@@ -165,7 +165,7 @@ func (us *UserServiceImpl) Register(username string, password string) (int64, in
 	userBytes, err := json.Marshal(newUser)
 	if err == nil {
 		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, 24*time.Hour)
-		redis.RDb.Set(redis.Ctx, redisNameKey, userBytes, 24*time.Hour)
+		redis.RDb.Set(redis.Ctx, redisNameKey, newUser.ID, 24*time.Hour)
 	}
 
 	log.Println("INFO: User registered successfully:", newUser.Username)
