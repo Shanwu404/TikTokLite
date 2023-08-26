@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/middleware/redis"
+	"github.com/Shanwu404/TikTokLite/utils"
 )
 
 func main() {
@@ -20,4 +21,5 @@ func initDeps() {
 	//初始化数据库连接
 	dao.Init()
 	redis.InitRedis()
+	utils.InitWordsFilter()
 }

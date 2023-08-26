@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/Shanwu404/TikTokLite/utils"
 	"net/http"
 	"strconv"
 	"time"
@@ -36,6 +37,7 @@ func (ms *MessageController) MessageAction(c *gin.Context) {
 		toUserId, _ := strconv.ParseInt(id, 10, 64)
 		// 获取内容
 		content := c.Query("content")
+		content = utils.Filter.Replace(content, '#')
 		message := service.MessageParams{
 			ToUserId:   toUserId,
 			FromUserId: userId,
