@@ -14,6 +14,7 @@ var AppConfig struct {
 	HTTPServer HTTPServerConfig
 	Database   DatabaseConfig
 	OSS        OSSConfig
+	Redis      RedisConfig
 }
 
 type HTTPServerConfig struct {
@@ -40,14 +41,21 @@ type OSSConfig struct {
 	BucketName         string
 }
 
+type RedisConfig struct {
+	Redis_host     string
+	Redis_port     int
+	Redis_password string
+}
+
 var (
 	HTTPServer = &AppConfig.HTTPServer
 	Database   = &AppConfig.Database
 	OSS        = &AppConfig.OSS
+	Redis      = &AppConfig.Redis
 )
 
 func init() {
-	_, err := toml.DecodeFile(`config/config.toml`, &AppConfig)
+	_, err := toml.DecodeFile(`../config/config.toml`, &AppConfig)
 	if err != nil {
 		err = errors.Join(errors.New("read config file failed"), err)
 		panic(err)

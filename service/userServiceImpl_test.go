@@ -43,6 +43,13 @@ func TestUserServiceImpl_Login(t *testing.T) {
 	fmt.Println(code, message)
 }
 
+func TestIsUserIdExist(t *testing.T) {
+	UserServiceImplInit()
+	usi := NewUserService()
+	exist := usi.IsUserIdExist(9)
+	fmt.Println(exist)
+}
+
 func TestComparePasswords(t *testing.T) {
 	hashedPassword := "$2a$10$GRozN2nx7FZncQO/Zhx2yer4vd1Xbey4VC1DtCNjPtZnpvufWVvgG"
 	originalPassword := "1000"

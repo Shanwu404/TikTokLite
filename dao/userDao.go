@@ -7,7 +7,7 @@ import (
 type User struct {
 	ID       int64
 	Username string
-	Password string
+	Password string `json:"-"`
 }
 
 // InsertUser 新增用户
@@ -52,15 +52,4 @@ func QueryAllNames() []string {
 	}
 
 	return usernames
-}
-
-// 查询用户ID是否存在
-func IsUserIdExist(id int64) bool {
-	var user User
-	result := db.Where("id = ?", id).First(&user)
-	if err := result.Error; err != nil {
-		log.Println(err.Error())
-		return false
-	}
-	return true
 }

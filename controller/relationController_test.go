@@ -22,7 +22,7 @@ func TestFollowsList(t *testing.T) {
 }
 
 func TestFollowerList(t *testing.T) {
-	token, _ := auth.GenerateToken("Lihua", 2)
+	token, _ := auth.GenerateToken("lux", 7)
 	url := "http://localhost:8080/douyin/relation/follower/list/?user_id=7&token=" + token
 	method := "GET"
 	SendRequest(method, url, strings.NewReader(token))

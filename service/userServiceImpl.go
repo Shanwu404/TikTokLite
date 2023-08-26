@@ -12,6 +12,7 @@ import (
 
 	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/middleware/redis"
+	"github.com/Shanwu404/TikTokLite/utils"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -30,24 +31,23 @@ func NewUserService() UserService {
 	}
 }
 
-// QueryUserByName 根据name获取User对象
+// QueryUserByUsername 根据name获取User对象
 func (us *UserServiceImpl) QueryUserByUsername(username string) (dao.User, error) {
 	log.Println("INFO: Querying user by name: ", username)
 
-	// 尝试从Redis中获取用户信息
-	redisKey := "user:name:" + username
-	userData, err := redis.RDb.Get(redis.Ctx, redisKey).Result()
-	if err == nil && userData != "" {
-		// 解析Redis中的数据到User对象
-		var user dao.User
-		err := json.Unmarshal([]byte(userData), &user)
-		if err == nil {
-			log.Println("INFO: Query user successfully (Redis)! User queried by name: ", user.Username)
-			return user, nil
+	// 尝试从Redis中获取用户ID
+	redisNameKey := utils.UserNameKey + username
+	userIDStr, err := redis.RDb.Get(redis.Ctx, redisNameKey).Result()
+	if err == nil && userIDStr != "" {
+		userID, err := strconv.ParseInt(userIDStr, 10, 64)
+		if err != nil {
+			log.Println("ERROR: Error parsing user ID from Redis:", err)
+		} else {
+			return us.QueryUserByID(userID)
 		}
 	}
 
-	// 如果Redis中没有用户信息或解析失败，则从数据库中获取
+	// 如果Redis中没有用户ID，则从数据库中获取
 	user, err := dao.QueryUserByUsername(username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -59,11 +59,14 @@ func (us *UserServiceImpl) QueryUserByUsername(username string) (dao.User, error
 	}
 	user.Password = "" // 屏蔽密码
 
+	// 将用户ID存入Redis
+	redis.RDb.Set(redis.Ctx, redisNameKey, user.ID, 24*time.Hour)
+
 	// 将用户信息存入Redis
-	redisKey = "user:name:" + user.Username
+	redisDataKey := "user:id:" + strconv.FormatInt(user.ID, 10)
 	userBytes, err := json.Marshal(user)
 	if err == nil {
-		redis.RDb.Set(redis.Ctx, redisKey, userBytes, 2*time.Hour)
+		redis.RDb.Set(redis.Ctx, redisDataKey, userBytes, 2*time.Hour)
 	}
 	log.Println("INFO: Query user successfully (MySQL)! User queried by name: ", user.Username)
 	return user, nil
@@ -74,8 +77,8 @@ func (us *UserServiceImpl) QueryUserByID(id int64) (dao.User, error) {
 	log.Println("INFO: Querying user by ID:", id)
 
 	// 尝试从Redis中获取用户信息
-	redisKey := "user:id:" + strconv.FormatInt(id, 10)
-	userData, err := redis.RDb.Get(redis.Ctx, redisKey).Result()
+	redisIdKey := utils.UserIdKey + strconv.FormatInt(id, 10)
+	userData, err := redis.RDb.Get(redis.Ctx, redisIdKey).Result()
 	if err == nil && userData != "" {
 		// 解析Redis中的数据到User对象
 		var user dao.User
@@ -101,7 +104,7 @@ func (us *UserServiceImpl) QueryUserByID(id int64) (dao.User, error) {
 	// 将用户信息存入Redis
 	userBytes, err := json.Marshal(user)
 	if err == nil {
-		redis.RDb.Set(redis.Ctx, redisKey, userBytes, 2*time.Hour)
+		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, 24*time.Hour)
 	}
 	log.Println("INFO: Query user successfully (MySQL)! User queried by ID: ", user)
 	return user, nil
@@ -161,8 +164,8 @@ func (us *UserServiceImpl) Register(username string, password string) (int64, in
 	redisNameKey := "user:name:" + newUser.Username
 	userBytes, err := json.Marshal(newUser)
 	if err == nil {
-		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, 2*time.Hour)
-		redis.RDb.Set(redis.Ctx, redisNameKey, userBytes, 2*time.Hour)
+		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, 24*time.Hour)
+		redis.RDb.Set(redis.Ctx, redisNameKey, userBytes, 24*time.Hour)
 	}
 
 	log.Println("INFO: User registered successfully:", newUser.Username)
@@ -199,10 +202,32 @@ func (us *UserServiceImpl) Login(username string, password string) (int32, strin
 
 // IsUserIdExist 查询用户ID是否存在
 func (us *UserServiceImpl) IsUserIdExist(id int64) bool {
-	log.Println("Checking if user ID exists:", id)
-	isExisted := dao.IsUserIdExist(id)
-	log.Printf("User ID %d exists: %t\n", id, isExisted)
-	return isExisted
+	log.Println("INFO: Checking if user ID exists:", id)
+
+	// 尝试从Redis中获取用户信息
+	redisIdKey := "user:id:" + strconv.FormatInt(id, 10)
+	userData, err := redis.RDb.Get(redis.Ctx, redisIdKey).Result()
+	if err == nil && userData != "" {
+		// 说明Redis中存在该用户信息
+		log.Printf("INFO: User ID %d exists (Redis)\n", id)
+		return true
+	}
+
+	// 如果Redis中没有用户信息，则从数据库中获取
+	user, err := dao.QueryUserByID(id)
+	if err != nil {
+		log.Println("WARN: User ID not found:", id)
+		return false
+	}
+	user.Password = "" // 屏蔽密码
+
+	// 将用户信息存入Redis
+	userBytes, err := json.Marshal(user)
+	if err == nil {
+		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, 24*time.Hour)
+	}
+	log.Printf("INFO: User ID %d exists (MySQL)\n", id)
+	return true
 }
 
 // QueryUserInfoByID 根据用户ID查询用户信息
@@ -231,8 +256,9 @@ func (us *UserServiceImpl) QueryUserInfoByID(userId int64) (UserInfoParams, erro
 
 	totalFavorited := us.likeService.TotalFavorited(userId)
 
-	videos := us.videoService.GetVideoListByUserId(userId)
-	workCount := int64(len(videos))
+	// videos := us.videoService.GetVideoListByUserId(userId)
+	// workCount := int64(len(videos))
+	workCount := int64(10) // 临时设置
 
 	userInfo := UserInfoParams{
 		Id:              user.ID,
