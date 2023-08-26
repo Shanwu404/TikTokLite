@@ -35,11 +35,12 @@ func (like *LikeServiceImpl) Like(userId int64, videoId int64) error {
 		return err
 	}
 
+	log.Println("insert success")
 	strUserId := strconv.FormatInt(userId, 10)
 	strVideoId := strconv.FormatInt(videoId, 10)
 
-	key_userId := utils.Like_User_Key + strconv.FormatInt(userId, 10)
-	key_videoId := utils.Like_Video_key + strconv.FormatInt(videoId, 10)
+	key_userId := utils.LikeUserKey + strconv.FormatInt(userId, 10)
+	key_videoId := utils.LikeVideokey + strconv.FormatInt(videoId, 10)
 
 	//判断缓存中是否存在这个userid
 	//如果存在，就补充一个键值对
@@ -55,7 +56,7 @@ func (like *LikeServiceImpl) Like(userId int64, videoId int64) error {
 	} else { //如果不存在这个user，就新建空白键值对
 		redis.RDb.SAdd(redis.Ctx, key_userId, utils.MyDefault).Result()
 		//设置过期时间
-		redis.RDb.Expire(redis.Ctx, key_userId, redis.RandomTime()).Result()
+		redis.RDb.Expire(redis.Ctx, key_userId, utils.LikeUserKeyTTL).Result()
 
 		//把数据库中的当前用户点赞的videoId全部添加到缓存中
 		videoIdList, err1 := dao.GetLikeVideoIdList(userId)
@@ -92,7 +93,7 @@ func (like *LikeServiceImpl) Like(userId int64, videoId int64) error {
 			redis.RDb.Del(redis.Ctx, key_videoId)
 			return err
 		}
-		if _, err := redis.RDb.Expire(redis.Ctx, key_videoId, redis.RandomTime()).Result(); err != nil {
+		if _, err := redis.RDb.Expire(redis.Ctx, key_videoId, utils.LikeVideoKeyTTL).Result(); err != nil {
 			log.Println("Failed to set cache expiration time")
 			redis.RDb.Del(redis.Ctx, key_videoId)
 			return err
@@ -133,8 +134,8 @@ func (like *LikeServiceImpl) Unlike(userId int64, videoId int64) error {
 	strUserId := strconv.FormatInt(userId, 10)
 	strVideoId := strconv.FormatInt(videoId, 10)
 
-	key_userId := utils.Like_User_Key + strconv.FormatInt(userId, 10)
-	key_videoId := utils.Like_Video_key + strconv.FormatInt(videoId, 10)
+	key_userId := utils.LikeUserKey + strconv.FormatInt(userId, 10)
+	key_videoId := utils.LikeVideokey + strconv.FormatInt(videoId, 10)
 
 	//查看用户是否在缓存中
 	if n, err := redis.RDb.Exists(redis.Ctx, key_userId).Result(); n > 0 {
@@ -147,7 +148,7 @@ func (like *LikeServiceImpl) Unlike(userId int64, videoId int64) error {
 		}
 	} else { //如果取消点赞的用户id不在redis缓存中,那么新建并设置过期时间
 		redis.RDb.SAdd(redis.Ctx, key_userId, utils.MyDefault).Result()
-		redis.RDb.Expire(redis.Ctx, key_userId, redis.RandomTime()).Result()
+		redis.RDb.Expire(redis.Ctx, key_userId, utils.LikeUserKeyTTL).Result()
 
 		//把数据库中的当前用户点赞的videoId全部添加到缓存中
 		videoIdList, err1 := dao.GetLikeVideoIdList(userId)
@@ -177,7 +178,7 @@ func (like *LikeServiceImpl) Unlike(userId int64, videoId int64) error {
 		}
 	} else { //如果不在缓存中,新建然后设置过期时间
 		redis.RDb.SAdd(redis.Ctx, key_videoId, utils.MyDefault).Result()
-		redis.RDb.Expire(redis.Ctx, key_videoId, redis.RandomTime()).Result()
+		redis.RDb.Expire(redis.Ctx, key_videoId, utils.LikeVideoKeyTTL).Result()
 
 		//把数据库中给当前视频的点赞的userId全部添加到缓存中
 		userIdList, err1 := dao.GetLikeUserIdList(videoId)
@@ -203,7 +204,7 @@ func (like *LikeServiceImpl) Unlike(userId int64, videoId int64) error {
 /*获取点赞列表, 返回的是视频的详细信息*/
 func (like *LikeServiceImpl) GetLikeLists(userId int64) []VideoParams {
 
-	key_userId := utils.Like_User_Key + strconv.FormatInt(userId, 10)
+	key_userId := utils.LikeUserKey + strconv.FormatInt(userId, 10)
 
 	if n, err := redis.RDb.Exists(redis.Ctx, key_userId).Result(); n > 0 {
 		if err != nil {
@@ -228,7 +229,7 @@ func (like *LikeServiceImpl) GetLikeLists(userId int64) []VideoParams {
 		return results
 	} else { //如果key_userId不存在缓存中，需要把数据库中的信息添加到缓存中
 		redis.RDb.SAdd(redis.Ctx, key_userId, utils.MyDefault).Result()
-		redis.RDb.Expire(redis.Ctx, key_userId, redis.RandomTime()).Result()
+		redis.RDb.Expire(redis.Ctx, key_userId, utils.LikeUserKeyTTL).Result()
 
 		//把数据库中的视频id添加到缓存中
 		//把数据库中的当前用户点赞的videoId全部添加到缓存中
@@ -273,7 +274,7 @@ func (like *LikeServiceImpl) addVideoLikeCount(videoId int64, sum *int64) {
 
 /*获取用户userId喜欢的视频数量*/
 func (like *LikeServiceImpl) LikeVideoCount(userId int64) (int64, error) {
-	key_userId := utils.Like_User_Key + strconv.FormatInt(userId, 10)
+	key_userId := utils.LikeUserKey + strconv.FormatInt(userId, 10)
 	//先判断key_userId键值是否在缓存中
 	if n, err := redis.RDb.Exists(redis.Ctx, key_userId).Result(); n > 0 { //key_userId键值在缓存中
 		if err != nil {
@@ -290,7 +291,7 @@ func (like *LikeServiceImpl) LikeVideoCount(userId int64) (int64, error) {
 		}
 	} else { //key_userId键值不在缓存中，需要把MySQL中的数据添加到缓存中
 		redis.RDb.SAdd(redis.Ctx, key_userId, utils.MyDefault).Result()
-		redis.RDb.Expire(redis.Ctx, key_userId, redis.RandomTime()).Result()
+		redis.RDb.Expire(redis.Ctx, key_userId, utils.LikeUserKeyTTL).Result()
 
 		//把数据库中的当前用户点赞的videoId全部添加到缓存中
 		likevideoIdList, err1 := dao.GetLikeVideoIdList(userId)
@@ -314,12 +315,48 @@ func (like *LikeServiceImpl) LikeVideoCount(userId int64) (int64, error) {
 
 }
 
+// func (like *LikeServiceImpl) IsLike(videoId int64, userId int64) bool {
+// 	key_userId := utils.LikeUserKey + strconv.FormatInt(userId, 10)
+// 	strVideoId := strconv.FormatInt(videoId, 10)
+// 	isLike, _ := redis.RDb.SIsMember(redis.Ctx, key_userId, strVideoId).Result()
+// 	log.Println("the statis return from redis is", isLike)
+// 	return isLike
+
+// if n, _ := redis.RDb.Exists(redis.Ctx, key_userId).Result(); n <= 0 { //如果key_userId存在缓存中
+// 	log.Println("user not in redis")
+
+// } else {
+// 	log.Println("user in redis")
+// 	videoIdList_database, _ := dao.GetLikeVideoIdList(userId)
+// 	log.Println("the videoidlist find in database is", videoIdList_database)
+
+// 	videoIdList, _ := redis.RDb.SMembers(redis.Ctx, key_userId).Result()
+// 	log.Println("the videoidlist find in redis is", videoIdList)
+
+// 	isLike, _ := redis.RDb.SIsMember(redis.Ctx, key_userId, strVideoId).Result()
+// 	log.Println("the statis return from redis is", isLike)
+// }
+// return true
+// }
+
+// 	if err != nil {
+// 		log.Println("Failed to get the likes video id list")
+// 		return false
+// 	}
+// 	for _, vId := range videoIdList {
+// 		if vId == videoId {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
+
 /*判断用户userId是否点赞视频videoId*/
 func (like *LikeServiceImpl) IsLike(videoId int64, userId int64) bool {
 	strUserId := strconv.FormatInt(userId, 10)
 	strVideoId := strconv.FormatInt(videoId, 10)
-	key_userId := utils.Like_User_Key + strconv.FormatInt(userId, 10)
-	key_videoId := utils.Like_Video_key + strconv.FormatInt(videoId, 10)
+	key_userId := utils.LikeUserKey + strconv.FormatInt(userId, 10)
+	key_videoId := utils.LikeVideokey + strconv.FormatInt(videoId, 10)
 
 	if n, err := redis.RDb.Exists(redis.Ctx, key_userId).Result(); n > 0 { //如果key_userId存在缓存中
 		if err != nil {
@@ -331,6 +368,7 @@ func (like *LikeServiceImpl) IsLike(videoId int64, userId int64) bool {
 			log.Println("Redis query failed")
 			return false
 		}
+		log.Println("user in redis, the status is", isLike)
 		return isLike
 	} else { //如果key_userId不存在缓存中，查询key_videoId是否在缓存中
 		if n, err := redis.RDb.Exists(redis.Ctx, key_videoId).Result(); n > 0 { //如果key_userId存在缓存中
@@ -355,7 +393,7 @@ func (like *LikeServiceImpl) IsLike(videoId int64, userId int64) bool {
 				if vId == videoId {
 					//如果存在喜欢关系，那么添加缓存
 					redis.RDb.SAdd(redis.Ctx, key_userId, utils.MyDefault).Result()
-					redis.RDb.Expire(redis.Ctx, key_userId, redis.RandomTime()).Result()
+					redis.RDb.Expire(redis.Ctx, key_userId, utils.LikeUserKeyTTL).Result()
 					//把数据库中的当前用户点赞的videoId全部添加到缓存中
 					videoIdList, err1 := dao.GetLikeVideoIdList(userId)
 					if err1 != nil {
@@ -379,7 +417,7 @@ func (like *LikeServiceImpl) IsLike(videoId int64, userId int64) bool {
 					}
 
 					redis.RDb.SAdd(redis.Ctx, key_videoId, utils.MyDefault).Result()
-					redis.RDb.Expire(redis.Ctx, key_videoId, redis.RandomTime()).Result()
+					redis.RDb.Expire(redis.Ctx, key_videoId, utils.LikeVideoKeyTTL).Result()
 
 					//把数据库中给当前视频的点赞的userId全部添加到缓存中
 					userIdList, err1 := dao.GetLikeUserIdList(videoId)
@@ -411,7 +449,7 @@ func (like *LikeServiceImpl) IsLike(videoId int64, userId int64) bool {
 
 /*获取视频videoId的点赞数*/
 func (like *LikeServiceImpl) CountLikes(videoId int64) int64 {
-	key_videoId := utils.Like_Video_key + strconv.FormatInt(videoId, 10)
+	key_videoId := utils.LikeVideokey + strconv.FormatInt(videoId, 10)
 	//var result int64
 	//result := 1
 	//如果键值key_videoId在缓存中
@@ -435,7 +473,7 @@ func (like *LikeServiceImpl) CountLikes(videoId int64) int64 {
 		}
 
 		redis.RDb.SAdd(redis.Ctx, key_videoId, utils.MyDefault).Result()
-		redis.RDb.Expire(redis.Ctx, key_videoId, redis.RandomTime()).Result()
+		redis.RDb.Expire(redis.Ctx, key_videoId, utils.LikeVideoKeyTTL).Result()
 		//把数据库中的点赞该视频的userid全部添加到缓存中
 		userIdList, err1 := dao.GetLikeUserIdList(videoId)
 		if err1 != nil {
