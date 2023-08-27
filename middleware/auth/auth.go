@@ -33,7 +33,9 @@ func Auth(c *gin.Context) {
 	if len(signaturedString) == 0 {
 		c.Abort()
 		c.JSON(
-			http.StatusUnauthorized,
+			// 这里用401客户端会报网络错误
+			// http.StatusUnauthorized,
+			http.StatusOK,
 			Response{
 				StatusCode: -1,
 				StatusMsg:  "Please verify the login status.",
