@@ -31,3 +31,5 @@ tmp/
 
 # config file
 *.toml
+
+*.log
