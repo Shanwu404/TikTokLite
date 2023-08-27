@@ -115,6 +115,11 @@ func (vc *VideoController) PublishList(c *gin.Context) {
 	}
 	userId := c.GetInt64("id")
 	userWorks := vc.videoService.GetVideoListByUserId(reqParams.UserID)
+	if len(userWorks) == 0 {
+		c.JSON(http.StatusOK, douyinPublishListResponse{
+			Response: Response{0, "Get Publish List."},
+		})
+	}
 	authorInfo := UserInfo{Id: userWorks[0].AuthorID} // 同一个用户的视频，所以作者信息是一样的
 	vc.completeUserInfo(&authorInfo, userId)
 	videoList := make([]Video, len(userWorks))
