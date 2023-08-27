@@ -10,14 +10,6 @@ var (
 	loggerInfo  *zap.SugaredLogger
 	loggerDebug *zap.SugaredLogger
 	loggerError *zap.SugaredLogger
-
-	Infoln  = loggerInfo.Infoln
-	Debugln = loggerDebug.Debugln
-	Errorln = loggerError.Errorln
-
-	Infof  = loggerInfo.Infof
-	Debugf = loggerDebug.Debugf
-	Errorf = loggerError.Errorf
 )
 
 func init() {
@@ -41,12 +33,12 @@ func init() {
 	loggerErrorConfig := zap.NewDevelopmentConfig()
 	loggerErrorConfig.Encoding = "console"
 	loggerErrorConfig.Level = zap.NewAtomicLevelAt(zap.ErrorLevel)
+	loggerErrorConfig.DisableStacktrace = true
 	// debug 或者 release一样
 	loggerErrorConfig.OutputPaths = []string{"log/error.log", "stderr"}
-	loggerError_, err := loggerErrorConfig.Build()
+	loggerError_, err := loggerErrorConfig.Build(zap.AddCallerSkip(1))
 	errHandler(err)
 	loggerError = loggerError_.Sugar()
-
 }
 
 func Sync() []error {
@@ -61,4 +53,22 @@ func errHandler(err error) {
 	if err != nil {
 		panic(errors.Join(errors.New("创建logger失败"), err))
 	}
+}
+func Infoln(args ...any) {
+	loggerInfo.Infoln(args...)
+}
+func Debugln(args ...any) {
+	loggerDebug.Debugln(args...)
+}
+func Errorln(args ...any) {
+	loggerError.Errorln(args...)
+}
+func Infof(template string, args ...any) {
+	loggerInfo.Infof(template, args...)
+}
+func Debugf(template string, args ...any) {
+	loggerDebug.Debugf(template, args...)
+}
+func Errorf(template string, args ...any) {
+	loggerError.Errorf(template, args...)
 }

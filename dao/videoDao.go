@@ -38,7 +38,7 @@ func QueryVideoByID(id int64) (Video, error) {
 	video := Video{}
 	err := db.Take(&video, id).Error
 	if err != nil {
-		logger.Errorln(err)
+		logger.Errorln(err, id)
 	}
 	return video, err
 }
@@ -57,7 +57,7 @@ func QueryVideosByPublishTime(latestTime time.Time, count int) []Video {
 func QueryVideosByAuthorId(authorId int64) []Video {
 	var videos = make([]Video, 0)
 	if err := db.Where("author_id = ?", authorId).Find(&videos).Error; err != nil {
-		logger.Errorln(err)
+		logger.Errorln(err, authorId)
 	}
 	return videos
 }
