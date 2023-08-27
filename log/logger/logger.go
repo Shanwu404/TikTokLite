@@ -18,7 +18,7 @@ func init() {
 	loggerInfoConfig.Encoding = "console"
 	loggerInfoConfig.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
 	loggerInfoConfig.OutputPaths = []string{"log/info.log"}
-	loggerInfo_, err := loggerInfoConfig.Build()
+	loggerInfo_, err := loggerInfoConfig.Build(zap.AddCallerSkip(1))
 	errHandler(err)
 	loggerInfo = loggerInfo_.Sugar()
 
@@ -26,7 +26,7 @@ func init() {
 	loggerDebugConfig.Encoding = "console"
 	loggerDebugConfig.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
 	loggerDebugConfig.OutputPaths = []string{"log/debug.log"}
-	loggerDebug_, err := loggerDebugConfig.Build()
+	loggerDebug_, err := loggerDebugConfig.Build(zap.AddCallerSkip(1))
 	errHandler(err)
 	loggerDebug = loggerDebug_.Sugar()
 
