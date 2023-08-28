@@ -18,9 +18,15 @@ const CommentCommentKey = "comment:comment:"
 const CommentVideoKey = "comment:video:"
 
 // 喜欢模块
-const Like_User_Key = "like:user:"
-const Like_Video_key = "like:video:"
+const LikeUserKey = "like:user:"
+
+const LikeVideokey = "like:video:"
+
 const MyDefault = -1
+
+var LikeUserKeyTTL = Day*7 + Day*time.Duration(DayRandnum)
+
+var LikeVideoKeyTTL = Day*7 + Day*time.Duration(DayRandnum)
 
 /*------------------------ user模块-----------------------------*/
 
