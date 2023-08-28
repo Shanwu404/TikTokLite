@@ -10,6 +10,7 @@ var AppConfig struct {
 	HTTPServer HTTPServerConfig
 	Database   DatabaseConfig
 	OSS        OSSConfig
+	Redis      RedisConfig
 }
 
 type HTTPServerConfig struct {
@@ -36,10 +37,17 @@ type OSSConfig struct {
 	BucketName         string
 }
 
+type RedisConfig struct {
+	RedisHost     string
+	RedisPort     int
+	RedisPassword string
+}
+
 var (
 	HTTPServer = &AppConfig.HTTPServer
 	Database   = &AppConfig.Database
 	OSS        = &AppConfig.OSS
+	Redis      = &AppConfig.Redis
 )
 
 func init() {

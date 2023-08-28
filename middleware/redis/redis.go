@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"math/rand"
+	"strconv"
 	"sync"
 	"time"
 
@@ -17,8 +18,8 @@ var Ctx = context.Background()
 
 func InitRedis() {
 	RDb = redis.NewClient(&redis.Options{
-		Addr:     config.Redis_host + ":" + config.Redis_port,
-		Password: config.Redis_password,
+		Addr:     config.Redis.RedisHost + ":" + strconv.Itoa(config.Redis.RedisPort),
+		Password: config.Redis.RedisPassword,
 		DB:       0,
 	})
 	_, err := RDb.Ping(Ctx).Result()
