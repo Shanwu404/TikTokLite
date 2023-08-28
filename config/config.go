@@ -12,6 +12,7 @@ var appConfig struct {
 	HTTPServer _HTTPServerConfig
 	Database   databaseConfig
 	OSS        _OSSConfig
+	Redis      redisConfig
 }
 
 type _HTTPServerConfig struct {
@@ -38,6 +39,12 @@ type _OSSConfig struct {
 	BucketName         string
 }
 
+type redisConfig struct {
+	RedisHost     string
+	RedisPort     int
+	RedisPassword string
+}
+
 // type logConfig struct {
 // 	LogRootPath string
 // 	LogLevel    []string
@@ -53,6 +60,10 @@ func Database() databaseConfig {
 
 func OSS() _OSSConfig {
 	return appConfig.OSS
+}
+
+func Redis() redisConfig {
+	return appConfig.Redis
 }
 
 // func Log() logConfig {
