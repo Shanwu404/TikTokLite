@@ -29,4 +29,6 @@ videos/
 # air
 tmp/
 
-config/config.go
+# config file
+*.toml
+
