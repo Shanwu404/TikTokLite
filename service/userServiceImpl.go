@@ -2,11 +2,10 @@ package service
 
 import (
 	"errors"
-	"fmt"
-	"log"
 	"unicode"
 
 	"github.com/Shanwu404/TikTokLite/dao"
+	"github.com/Shanwu404/TikTokLite/log/logger"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -27,35 +26,35 @@ func NewUserService() UserService {
 
 // QueryUserByName 根据name获取User对象
 func (us *UserServiceImpl) QueryUserByUsername(username string) (dao.User, error) {
-	log.Println("Querying user by name:", username)
+	logger.Infoln("Querying user by name:", username)
 	user, err := dao.QueryUserByUsername(username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Println("Username does not exist: ", username)
+			logger.Errorln("Username does not exist:", username)
 			return dao.User{}, err
 		}
-		log.Println("Error querying user by name:", username, err)
+		logger.Errorln("Error querying user by name:", username, "-", err.Error())
 		return dao.User{}, err
 	}
 	user.Password = "" // 屏蔽密码
-	log.Println("Query user successfully! User queried by name:", user)
+	logger.Infoln("Query user successfully! User queried by name:", user)
 	return *user, nil
 }
 
 // QueryUserByID 根据id获取User对象 屏蔽密码
 func (us *UserServiceImpl) QueryUserByID(id int64) (dao.User, error) {
-	log.Println("Querying user by ID:", id)
+	logger.Infoln("Querying user by ID:", id)
 	user, err := dao.QueryUserByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Println("User ID not found:", id)
+			logger.Errorln("User ID not found:", id)
 			return dao.User{}, err
 		}
-		log.Println("Error querying user by ID:", id, "-", err.Error())
+		logger.Errorln("Error querying user by ID:", id, "-", err.Error())
 		return dao.User{}, err
 	}
 	user.Password = "" // 屏蔽密码
-	log.Println("Query user successfully! User queried by ID:", user)
+	logger.Infoln("Query user successfully! User queried by ID:", user)
 	return *user, nil
 }
 
@@ -64,15 +63,15 @@ func (us *UserServiceImpl) Register(username string, password string) (int64, in
 
 	// 验证用户名和密码的合法性
 	if !isValidUsername(username) {
-		log.Println("Invalid username format:", username)
+		logger.Errorln("Invalid username format:", username)
 		return -1, 1, "Invalid username format!"
 	}
 	if !isValidPassword(password) {
-		log.Println("Invalid password format")
+		logger.Errorln("Invalid password format")
 		return -1, 1, "Invalid password format!"
 	}
 
-	log.Println("Registering user:", username)
+	logger.Infoln("Registering user:", username)
 	user, _ := dao.QueryUserByUsername(username)
 
 	if user != nil {
@@ -81,7 +80,7 @@ func (us *UserServiceImpl) Register(username string, password string) (int64, in
 
 	encoderPassword, err := HashEncode(password)
 	if err != nil {
-		log.Println("Password encoding error:", err)
+		logger.Errorln("Password encoding error:", err)
 		return -1, 1, "Incorrect password format!"
 	}
 
@@ -92,31 +91,31 @@ func (us *UserServiceImpl) Register(username string, password string) (int64, in
 
 	err = dao.InsertUser(newUser)
 	if err != nil {
-		log.Println("User registration error:", err)
+		logger.Errorln("User registration error:", err)
 		return 0, 1, "User registration failed!"
 	}
 
-	log.Println("User registered successfully:", newUser)
+	logger.Infoln("User registered successfully:", newUser)
 	return newUser.ID, 0, "Register successfully!"
 }
 
 // Login 用户登录，返回状态码和状态信息
 func (us *UserServiceImpl) Login(username string, password string) (int32, string) {
-	log.Println("Attempting login for user:", username)
+	logger.Infoln("Attempting login for user:", username)
 
 	// 验证用户名和密码的合法性
 	if !isValidUsername(username) {
-		log.Println("Invalid username format:", username)
+		logger.Errorln("Invalid username format:", username)
 		return 1, "Invalid username format!"
 	}
 	if !isValidPassword(password) {
-		log.Println("Invalid password format")
+		logger.Errorln("Invalid password format")
 		return 1, "Invalid password format!"
 	}
 
 	user, err := dao.QueryUserByUsername(username)
 	if err != nil {
-		log.Println("User login error:", err)
+		logger.Errorln("User login error:", err)
 		return 1, "User doesn't exist!"
 	}
 
@@ -130,38 +129,21 @@ func (us *UserServiceImpl) Login(username string, password string) (int32, strin
 
 // IsUserIdExist 查询用户ID是否存在
 func (us *UserServiceImpl) IsUserIdExist(id int64) bool {
-	log.Println("Checking if user ID exists:", id)
+	logger.Infoln("Checking if user ID exists:", id)
 	isExisted := dao.IsUserIdExist(id)
-	log.Printf("User ID %d exists: %t\n", id, isExisted)
+	logger.Infof("User ID %d exists: %t\n", id, isExisted)
 	return isExisted
 }
 
 // QueryUserInfoByID 根据用户ID查询用户信息
 func (us *UserServiceImpl) QueryUserInfoByID(userId int64) (UserInfoParams, error) {
-	log.Println("Querying userinfo by ID:", userId)
-	user, err := us.QueryUserByID(userId)
-	if err != nil {
-		return UserInfoParams{}, fmt.Errorf("error querying user by ID: %w", err)
-	}
-	log.Println(user)
+	logger.Infoln("Querying userinfo by ID:", userId)
 
-	followCount, err := us.relationService.CountFollows(userId)
-	if err != nil {
-		return UserInfoParams{}, fmt.Errorf("error counting follows: %w", err)
-	}
-
-	followerCount, err := us.relationService.CountFollowers(userId)
-	if err != nil {
-		return UserInfoParams{}, fmt.Errorf("error counting followers: %w", err)
-	}
-
-	favoriteCount, err := us.likeService.LikeVideoCount(userId)
-	if err != nil {
-		return UserInfoParams{}, fmt.Errorf("error counting favorite videos: %w", err)
-	}
-
+	user, _ := us.QueryUserByID(userId)
+	followCount, _ := us.relationService.CountFollows(userId)
+	followerCount, _ := us.relationService.CountFollowers(userId)
+	favoriteCount, _ := us.likeService.LikeVideoCount(userId)
 	totalFavorited := us.likeService.TotalFavorited(userId)
-
 	videos := us.videoService.GetVideoListByUserId(userId)
 	workCount := int64(len(videos))
 
@@ -237,7 +219,7 @@ func HashEncode(password string) (string, error) {
 func ComparePasswords(password1 string, password2 string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(password1), []byte(password2))
 	if err != nil {
-		log.Println("Password comparison error:", err)
+		logger.Errorln("Password comparison error:", err)
 		return false
 	}
 	return true
