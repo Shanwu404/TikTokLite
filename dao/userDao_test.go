@@ -29,12 +29,6 @@ func TestQueryUserByUsername(t *testing.T) {
 	fmt.Println(err)
 }
 
-func TestQueryAllNames(t *testing.T) {
-	Init()
-	usernames := QueryAllNames()
-	fmt.Println(usernames)
-}
-
 func TestIsUserIdExist(t *testing.T) {
 	Init()
 	flag := IsUserIdExist(1)

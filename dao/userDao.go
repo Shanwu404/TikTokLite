@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"log"
+	"github.com/Shanwu404/TikTokLite/log/logger"
 )
 
 type User struct {
@@ -14,7 +14,7 @@ type User struct {
 func InsertUser(user *User) error {
 	err := db.Create(user).Error
 	if err != nil {
-		log.Println(err.Error())
+		logger.Errorln(err)
 	}
 	return err
 }
@@ -24,7 +24,7 @@ func QueryUserByID(id int64) (*User, error) {
 	user := &User{}
 	result := db.Where("id = ?", id).First(user)
 	if err := result.Error; err != nil {
-		log.Println(err.Error())
+		logger.Errorln(err, id)
 		return nil, err
 	}
 	return user, nil
@@ -36,22 +36,10 @@ func QueryUserByUsername(username string) (*User, error) {
 	result := db.Where("username = ?", username).First(user)
 
 	if err := result.Error; err != nil {
-		log.Println(err.Error())
+		logger.Errorln(err, username)
 		return nil, err
 	}
 	return user, nil
-}
-
-func QueryAllNames() []string {
-	usernames := make([]string, 0)
-	result := db.Table("users").Pluck("username", &usernames)
-
-	if err := result.Error; err != nil {
-		log.Println(err.Error())
-		return []string{}
-	}
-
-	return usernames
 }
 
 // 查询用户ID是否存在
@@ -59,7 +47,7 @@ func IsUserIdExist(id int64) bool {
 	user := &User{}
 	result := db.Where("id = ?", id).First(user)
 	if err := result.Error; err != nil {
-		log.Println(err.Error())
+		logger.Errorln(err)
 		return false
 	}
 	return true
