@@ -1,8 +1,7 @@
 package dao
 
 import (
-	"errors"
-	"log"
+	"github.com/Shanwu404/TikTokLite/log/logger"
 )
 
 type Like struct {
@@ -20,8 +19,8 @@ func (Like) TableName() string {
 func InsertLike(likeData *Like) error {
 	err := db.Model(&Like{}).Create(&likeData).Error
 	if err != nil {
-		log.Println(err.Error())
-		return errors.New("insert like data failed")
+		logger.Errorln(err)
+		return err
 	}
 	return nil
 }
@@ -30,8 +29,8 @@ func InsertLike(likeData *Like) error {
 func DeleteLike(userId int64, videoId int64) error {
 	err := db.Where(map[string]interface{}{"user_id": userId, "video_id": videoId}).Delete(&Like{}).Error
 	if err != nil {
-		log.Println(err.Error())
-		return errors.New("delete like data failed")
+		logger.Errorln(err)
+		return err
 	}
 	return nil
 }
@@ -42,11 +41,11 @@ func GetLikeVideoIdList(userId int64) ([]int64, error) {
 	err := db.Model(&Like{}).Where(map[string]interface{}{"user_id": userId}).Pluck("video_id", &likeVideoIdList).Error
 	if err != nil {
 		if "record not found" == err.Error() {
-			log.Println("there are no likeVideoIds")
+			logger.Errorln("there are no likeVideoIds")
 			return likeVideoIdList, nil
 		} else {
-			log.Println(err.Error())
-			return likeVideoIdList, errors.New("get likeVideoIdList failed")
+			logger.Errorln("get likeVideoIdList failed: ", err)
+			return likeVideoIdList, err
 		}
 	}
 	return likeVideoIdList, nil
@@ -57,8 +56,8 @@ func GetLikeUserIdList(videoId int64) ([]int64, error) {
 	var likeUserIdList []int64
 	err := db.Model(Like{}).Where(map[string]interface{}{"video_id": videoId}).Pluck("user_id", &likeUserIdList).Error
 	if err != nil {
-		log.Println(err.Error())
-		return nil, errors.New("get likeUserIdList failed")
+		logger.Errorln("get likeUserIdList failed: ", err)
+		return nil, err
 	} else {
 		return likeUserIdList, nil
 	}
@@ -68,6 +67,7 @@ func CountLikes(videoId int64) (int64, error) {
 	var count int64
 	err := db.Model(&Like{}).Where("video_id = ?", videoId).Count(&count).Error
 	if err != nil {
+		logger.Errorln(err)
 		return -1, err
 	}
 	return count, nil

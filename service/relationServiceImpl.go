@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/Shanwu404/TikTokLite/dao"
+	"github.com/Shanwu404/TikTokLite/log/logger"
 	"github.com/Shanwu404/TikTokLite/middleware/redis"
 	"github.com/Shanwu404/TikTokLite/utils"
 )
@@ -21,13 +22,16 @@ func (rs *RelationServiceImpl) Follow(userId int64, followId int64) (bool, error
 	// 检查用户是否存在
 	usi := NewUserService()
 	if isExisted := usi.IsUserIdExist(followId); !isExisted {
+		logger.Errorln("user", followId, "does not exist")
 		return false, fmt.Errorf("user %d does not exist", followId)
 	} else if isExisted = usi.IsUserIdExist(userId); !isExisted {
+		logger.Errorln("user", userId, "does not exist")
 		return false, fmt.Errorf("user %d does not exist", userId)
 	}
 
 	// 不能关注自己
 	if userId == followId {
+		logger.Errorln("can not follow yourself")
 		return false, fmt.Errorf("can not follow yourself")
 	}
 
@@ -37,6 +41,7 @@ func (rs *RelationServiceImpl) Follow(userId int64, followId int64) (bool, error
 		return false, err
 	}
 	if isFollowed {
+		logger.Errorln("userId", userId, "has already followed user", followId)
 		return false, fmt.Errorf("userId %d has already followed user %d", userId, followId)
 	}
 
@@ -44,6 +49,7 @@ func (rs *RelationServiceImpl) Follow(userId int64, followId int64) (bool, error
 	if err := dao.InsertFollow(userId, followId); err != nil {
 		return false, err
 	}
+	logger.Infof("user %d followed user %d", userId, followId)
 
 	// 将新关注关系添加到Redis缓存
 	redisFollowKey := utils.RelationFollowKey + strconv.FormatInt(userId, 10)
@@ -67,6 +73,7 @@ func (rs *RelationServiceImpl) UnFollow(userId int64, followId int64) (bool, err
 		return false, err
 	}
 	if !isFollowed {
+		logger.Errorln("userId", userId, "has not followed user", followId)
 		return false, fmt.Errorf("userId %d has not followed user %d", userId, followId)
 	}
 
@@ -74,6 +81,7 @@ func (rs *RelationServiceImpl) UnFollow(userId int64, followId int64) (bool, err
 	if err := dao.DeleteFollow(userId, followId); err != nil {
 		return false, err
 	}
+	logger.Infof("user %d unfollowed user %d", userId, followId)
 
 	// 从Redis中移除关注关系
 	redisFollowKey := utils.RelationFollowKey + strconv.FormatInt(userId, 10)
@@ -105,6 +113,7 @@ func (rs *RelationServiceImpl) IsFollowed(userId int64, followId int64) (bool, e
 	if err != nil {
 		return false, err
 	}
+	logger.Infof("user %d has followed user %d: %t", userId, followId, isFollowed)
 
 	// 如果数据库中存在关注关系，则将其存入Redis缓存
 	if isFollowed {
@@ -131,6 +140,7 @@ func (rs *RelationServiceImpl) CountFollowers(userId int64) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	logger.Infof("user %d has %d followers", userId, followerCnt)
 
 	// 将用户粉丝数存入Redis
 	redis.RDb.Set(redis.Ctx, redisFollowerCntKey, followerCnt, utils.RelationFollowerCntKeyTTL)
@@ -154,6 +164,7 @@ func (rs *RelationServiceImpl) CountFollows(userId int64) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	logger.Infof("user %d has %d follows", userId, followCnt)
 
 	// 将用户关注数存入Redis
 	redis.RDb.Set(redis.Ctx, redisFollowCntKey, followCnt, utils.RelationFollowCntKeyTTL)
@@ -168,7 +179,7 @@ func (rs *RelationServiceImpl) GetFollowList(userId int64) ([]int64, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	logger.Infoln("get follow list success")
 	return followId, nil
 }
 
@@ -179,7 +190,7 @@ func (rs *RelationServiceImpl) GetFollowerList(userId int64) ([]int64, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	logger.Infoln("get follower list success")
 	return followerId, nil
 }
 
@@ -209,6 +220,6 @@ func (rs *RelationServiceImpl) GetFriendList(userId int64) ([]int64, error) {
 			friendList = append(friendList, id)
 		}
 	}
-
+	logger.Infoln("get friend list success")
 	return friendList, nil
 }

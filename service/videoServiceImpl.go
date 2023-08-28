@@ -1,11 +1,11 @@
 package service
 
 import (
-	"log"
 	"mime/multipart"
 	"time"
 
 	"github.com/Shanwu404/TikTokLite/dao"
+	"github.com/Shanwu404/TikTokLite/log/logger"
 	"github.com/Shanwu404/TikTokLite/utils/aliyun/ossClient"
 )
 
@@ -24,7 +24,7 @@ func NewVideoService() VideoService {
 func (vService *VideoServiceImpl) GetMultiVideoBefore(latestTimestamp int64, count int) []VideoParams {
 	mb, err := ossClient.NewBucket(external)
 	if err != nil {
-		log.Println("Get bucket error:", err)
+		logger.Errorln("Get bucket error:", err)
 		return []VideoParams{}
 	}
 	latestTime := time.Unix(latestTimestamp, 0)
@@ -33,7 +33,7 @@ func (vService *VideoServiceImpl) GetMultiVideoBefore(latestTimestamp int64, cou
 	for i := range videos {
 		videos[i].PlayURL, err = mb.ObjectExternalURL(videos[i].PlayURL)
 		if err != nil {
-			log.Println("Get object url error:", err)
+			logger.Errorln("Get object url error:", err)
 		}
 		videoSlc = append(videoSlc, VideoParams(videos[i]))
 	}
@@ -43,19 +43,19 @@ func (vService *VideoServiceImpl) GetMultiVideoBefore(latestTimestamp int64, cou
 func (vService *VideoServiceImpl) StoreVideo(dataHeader *multipart.FileHeader, fileName string, video *VideoParams) error {
 	mb, err := ossClient.NewBucket(internal)
 	if err != nil {
-		log.Println("Get bucket error:", err)
+		logger.Errorln("Get bucket error:", err)
 		return err
 	}
 	internalURL := "videos/" + fileName
 	err = mb.UploadVideo(dataHeader, internalURL)
 	if err != nil {
-		log.Println("Upload video failed:", err)
+		logger.Errorln("Upload video failed:", err)
 		return err
 	}
 	video.PlayURL = internalURL
 	err = vService.InsertVideosTable(video)
 	if err != nil {
-		log.Println("Insert video table failed:", err)
+		logger.Errorln("Insert video table failed:", err)
 		// 可优化的点：删除OSS视频，保持事务原子性
 		return err
 	}
@@ -81,7 +81,7 @@ func (vService *VideoServiceImpl) InsertVideosTable(video *VideoParams) error {
 func (vService *VideoServiceImpl) GetVideoListByUserId(AuthorID int64) []VideoParams {
 	mb, err := ossClient.NewBucket(external)
 	if err != nil {
-		log.Println("Get bucket error:", err)
+		logger.Errorln("Get bucket error:", err)
 		return []VideoParams{}
 	}
 	videos := dao.QueryVideosByAuthorId(AuthorID)
@@ -89,7 +89,7 @@ func (vService *VideoServiceImpl) GetVideoListByUserId(AuthorID int64) []VideoPa
 	for i := range videos {
 		videos[i].PlayURL, err = mb.ObjectExternalURL(videos[i].PlayURL)
 		if err != nil {
-			log.Println("Get object url error:", err)
+			logger.Errorln("Get object url error:", err)
 		}
 		results = append(results, VideoParams(videos[i]))
 	}
@@ -99,14 +99,14 @@ func (vService *VideoServiceImpl) GetVideoListByUserId(AuthorID int64) []VideoPa
 func (vService *VideoServiceImpl) QueryVideoById(videoID int64) VideoParams {
 	mb, err := ossClient.NewBucket(external)
 	if err != nil {
-		log.Println("Get bucket error:", err)
+		logger.Errorln("Get bucket error:", err)
 		return VideoParams{}
 	}
 	videoFromDao, _ := dao.QueryVideoByID(videoID)
 	// 视频实际链接很适合放入redis，设置过期时间
 	videoFromDao.PlayURL, err = mb.ObjectExternalURL(videoFromDao.PlayURL)
 	if err != nil {
-		log.Println("Get object url error:", err)
+		logger.Errorln("Get object url error:", err)
 	}
 	video := VideoParams(videoFromDao)
 	return video
