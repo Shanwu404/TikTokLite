@@ -1,8 +1,6 @@
 package service
 
 import (
-	"log"
-
 	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/log/logger"
 )
@@ -47,7 +45,6 @@ func (like *LikeServiceImpl) GetLikeLists(userId int64) []VideoParams {
 	videos, _ := dao.GetLikeVideoIdList(userId)
 	results := make([]VideoParams, 0, len(videos))
 	for _, video := range videos {
-		log.Println(int64(video))
 		result := like.videoService.QueryVideoById(int64(video))
 		results = append(results, VideoParams(result))
 	}
