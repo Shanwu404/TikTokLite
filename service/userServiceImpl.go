@@ -238,8 +238,9 @@ func (us *UserServiceImpl) QueryUserInfoByID(userId int64) (UserInfoParams, erro
 	followerCount, _ := us.relationService.CountFollowers(userId)
 	favoriteCount, _ := us.likeService.LikeVideoCount(userId)
 	totalFavorited := us.likeService.TotalFavorited(userId)
-	videos := us.videoService.GetVideoListByUserId(userId)
-	workCount := int64(len(videos))
+	// videos := us.videoService.GetVideoListByUserId(userId)
+	// workCount := int64(len(videos))
+	workCount := int64(10)
 
 	userInfo := UserInfoParams{
 		Id:              user.ID,
