@@ -59,13 +59,13 @@ func (us *UserServiceImpl) QueryUserByUsername(username string) (dao.User, error
 	user.Password = "" // 屏蔽密码
 
 	// 将用户ID存入Redis
-	redis.RDb.Set(redis.Ctx, redisNameKey, user.ID, 24*time.Hour)
+	redis.RDb.Set(redis.Ctx, redisNameKey, user.ID, utils.UserNameKeyTTL)
 
 	// 将用户信息存入Redis
-	redisDataKey := "user:id:" + strconv.FormatInt(user.ID, 10)
+	redisIdKey := utils.UserIdKey + strconv.FormatInt(user.ID, 10)
 	userBytes, err := json.Marshal(user)
 	if err == nil {
-		redis.RDb.Set(redis.Ctx, redisDataKey, userBytes, 2*time.Hour)
+		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, utils.UserIdKeyTTL)
 	}
 	logger.Infoln("Query user successfully (MySQL)! User queried by name: ", user.Username)
 	return user, nil
@@ -103,7 +103,7 @@ func (us *UserServiceImpl) QueryUserByID(id int64) (dao.User, error) {
 	// 将用户信息存入Redis
 	userBytes, err := json.Marshal(user)
 	if err == nil {
-		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, 24*time.Hour)
+		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, utils.UserIdKeyTTL)
 	}
 	logger.Infoln("Query user successfully (MySQL)! User queried by ID: ", user)
 	return user, nil
@@ -163,8 +163,8 @@ func (us *UserServiceImpl) Register(username string, password string) (int64, in
 	redisNameKey := "user:name:" + newUser.Username
 	userBytes, err := json.Marshal(newUser)
 	if err == nil {
-		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, 24*time.Hour)
-		redis.RDb.Set(redis.Ctx, redisNameKey, newUser.ID, 24*time.Hour)
+		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, utils.UserIdKeyTTL)
+		redis.RDb.Set(redis.Ctx, redisNameKey, newUser.ID, utils.UserNameKeyTTL)
 	}
 
 	logger.Infoln("User registered successfully:", newUser.Username)
@@ -181,13 +181,13 @@ func (us *UserServiceImpl) Login(username string, password string) (int32, strin
 		return 1, "Invalid username format!"
 	}
 	if !isValidPassword(password) {
-		logger.Errorln("WARN: Invalid password format")
+		logger.Errorln("Invalid password format")
 		return 1, "Invalid password format!"
 	}
 
 	user, err := dao.QueryUserByUsername(username)
 	if err != nil {
-		logger.Errorln("ERROR: User login error:", err)
+		logger.Errorln("User login error:", err)
 		return 1, "User doesn't exist!"
 	}
 
@@ -223,7 +223,7 @@ func (us *UserServiceImpl) IsUserIdExist(id int64) bool {
 	// 将用户信息存入Redis
 	userBytes, err := json.Marshal(user)
 	if err == nil {
-		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, 24*time.Hour)
+		redis.RDb.Set(redis.Ctx, redisIdKey, userBytes, utils.UserIdKeyTTL)
 	}
 	logger.Infof("User ID %d exists (MySQL)\n", id)
 	return true
