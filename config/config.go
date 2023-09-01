@@ -13,6 +13,7 @@ var appConfig struct {
 	Database   databaseConfig
 	OSS        _OSSConfig
 	Redis      redisConfig
+	Rabbitmq   rabbitmqConfig
 }
 
 type _HTTPServerConfig struct {
@@ -45,6 +46,13 @@ type redisConfig struct {
 	RedisPassword string
 }
 
+type rabbitmqConfig struct {
+	RabbitmqUsername string
+	RabbitmqPassword string
+	RabbitmqHost     string
+	RabbitmqPort     int
+}
+
 // type logConfig struct {
 // 	LogRootPath string
 // 	LogLevel    []string
@@ -64,6 +72,10 @@ func OSS() _OSSConfig {
 
 func Redis() redisConfig {
 	return appConfig.Redis
+}
+
+func Rabbitmq() rabbitmqConfig {
+	return appConfig.Rabbitmq
 }
 
 // func Log() logConfig {
