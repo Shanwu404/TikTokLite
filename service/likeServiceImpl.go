@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/Shanwu404/TikTokLite/dao"
+	"github.com/Shanwu404/TikTokLite/middleware/rabbitmq"
 	"github.com/Shanwu404/TikTokLite/middleware/redis"
 	"github.com/Shanwu404/TikTokLite/utils"
 )
@@ -31,13 +33,20 @@ func (like *LikeServiceImpl) Like(userId int64, videoId int64) error {
 	}
 
 	//若没有点赞则插入新的关系
-	if err := dao.InsertLike(&dao.Like{UserId: userId, VideoId: videoId}); err != nil {
-		return err
-	}
-
-	log.Println("insert success")
+	// if err := dao.InsertLike(&dao.Like{UserId: userId, VideoId: videoId}); err != nil {
+	// 	return err
+	// }
 	strUserId := strconv.FormatInt(userId, 10)
 	strVideoId := strconv.FormatInt(videoId, 10)
+
+	//若没有点赞则插入新的关系
+	message := strings.Builder{}
+	message.WriteString(strUserId)
+	message.WriteString(":")
+	message.WriteString(strVideoId)
+	rabbitmq.RabbitMQLikeAdd.Producer(message.String())
+
+	log.Println("insert success")
 
 	key_userId := utils.LikeUserKey + strconv.FormatInt(userId, 10)
 	key_videoId := utils.LikeVideokey + strconv.FormatInt(videoId, 10)
@@ -127,12 +136,19 @@ func (like *LikeServiceImpl) Unlike(userId int64, videoId int64) error {
 	}
 
 	//如果已经点赞了，那么取消这次点赞
-	if err := dao.DeleteLike(userId, videoId); err != nil {
-		return err
-	}
+	// if err := dao.DeleteLike(userId, videoId); err != nil {
+	// 	return err
+	// }
 
 	strUserId := strconv.FormatInt(userId, 10)
 	strVideoId := strconv.FormatInt(videoId, 10)
+
+	//如果已经点赞了，那么取消这次点赞
+	message := strings.Builder{}
+	message.WriteString(strUserId)
+	message.WriteString(":")
+	message.WriteString(strVideoId)
+	rabbitmq.RabbitMQLikeDel.Producer(message.String())
 
 	key_userId := utils.LikeUserKey + strconv.FormatInt(userId, 10)
 	key_videoId := utils.LikeVideokey + strconv.FormatInt(videoId, 10)

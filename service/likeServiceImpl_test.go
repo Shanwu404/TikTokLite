@@ -5,12 +5,15 @@ import (
 	"testing"
 
 	"github.com/Shanwu404/TikTokLite/dao"
+	"github.com/Shanwu404/TikTokLite/middleware/rabbitmq"
 	"github.com/Shanwu404/TikTokLite/middleware/redis"
 )
 
 func LikeServiceImplInit() {
 	dao.Init()
 	redis.InitRedis()
+	rabbitmq.Init()
+	rabbitmq.InitLikeRabbitMQ()
 }
 
 func TestLikeServiceImpl_Like(t *testing.T) {

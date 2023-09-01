@@ -6,6 +6,11 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+var RabbitMQ_username=''
+var RabbitMQ_passsword = 
+var RabbitMQ_IP = 
+var RabbitMQ_host = 
+
 var AppConfig struct {
 	HTTPServer HTTPServerConfig
 	Database   DatabaseConfig
