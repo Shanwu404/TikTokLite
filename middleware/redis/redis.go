@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"log"
+	"math/rand"
 	"strconv"
 	"sync"
 	"time"
@@ -24,6 +25,7 @@ func InitRedis() {
 	_, err := RDb.Ping(Ctx).Result()
 	if err != nil {
 		log.Println("err:", err.Error())
+		return
 	}
 	log.Println("Redis has connected!")
 }
@@ -46,4 +48,9 @@ func Unlock(key string) bool {
 		return false
 	}
 	return true
+}
+
+func RandomTime() time.Duration {
+	rand.Seed(time.Now().Unix())
+	return time.Duration(rand.Int63n(25)) * time.Hour // 设置随机过期时间
 }

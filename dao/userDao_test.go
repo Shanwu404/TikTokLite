@@ -11,7 +11,7 @@ func TestInsertUser(t *testing.T) {
 		Username: "John",
 		Password: "password",
 	}
-	err := InsertUser(&user1)
+	err := InsertUser(user1)
 	fmt.Println(err)
 }
 

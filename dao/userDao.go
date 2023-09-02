@@ -7,12 +7,12 @@ import (
 type User struct {
 	ID       int64
 	Username string
-	Password string
+	Password string `json:"-"`
 }
 
 // InsertUser 新增用户
-func InsertUser(user *User) error {
-	err := db.Create(user).Error
+func InsertUser(user User) error {
+	err := db.Create(&user).Error
 	if err != nil {
 		logger.Errorln(err)
 	}
@@ -20,24 +20,24 @@ func InsertUser(user *User) error {
 }
 
 // QueryUserByID 根据ID查询User
-func QueryUserByID(id int64) (*User, error) {
-	user := &User{}
-	result := db.Where("id = ?", id).First(user)
+func QueryUserByID(id int64) (User, error) {
+	var user User
+	result := db.Where("id = ?", id).First(&user)
 	if err := result.Error; err != nil {
 		logger.Errorln(err, id)
-		return nil, err
+		return User{}, err
 	}
 	return user, nil
 }
 
-// QueryUserByUsername 根据ID查询User
-func QueryUserByUsername(username string) (*User, error) {
-	user := &User{}
-	result := db.Where("username = ?", username).First(user)
+// QueryUserByUsername 根据Username查询User
+func QueryUserByUsername(username string) (User, error) {
+	var user User
+	result := db.Where("username = ?", username).First(&user)
 
 	if err := result.Error; err != nil {
 		logger.Errorln(err, username)
-		return nil, err
+		return User{}, err
 	}
 	return user, nil
 }

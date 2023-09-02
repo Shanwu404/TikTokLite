@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/Shanwu404/TikTokLite/middleware/rabbitmq"
 
 	"github.com/Shanwu404/TikTokLite/config"
 	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/log/logger"
+	"github.com/Shanwu404/TikTokLite/middleware/redis"
 )
 
 func main() {
@@ -25,4 +27,5 @@ func initDeps() {
 	//初始化数据库连接
 	dao.Init()
 	rabbitmq.Init()
+	redis.InitRedis()
 }
