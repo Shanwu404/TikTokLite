@@ -27,5 +27,6 @@ func initDeps() {
 	//初始化数据库连接
 	dao.Init()
 	rabbitmq.Init()
+	rabbitmq.InitRelationMQ()
 	redis.InitRedis()
 }
