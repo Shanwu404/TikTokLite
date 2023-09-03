@@ -43,7 +43,7 @@ var (
 )
 
 func init() {
-	_, err := toml.DecodeFile(`config/config.toml`, &AppConfig)
+	_, err := toml.DecodeFile(`D:/研一/TikTokLite/config/config.toml`, &AppConfig)
 	if err != nil {
 		err = errors.Join(errors.New("read config file failed"), err)
 		panic(err)
