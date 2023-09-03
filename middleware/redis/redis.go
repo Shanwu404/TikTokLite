@@ -18,13 +18,8 @@ var Ctx = context.Background()
 
 func InitRedis() {
 	RDb = redis.NewClient(&redis.Options{
-<<<<<<< HEAD
-		Addr:     config.Redis.RedisHost + ":" + strconv.Itoa(config.Redis.RedisPort),
-		Password: config.Redis.RedisPassword,
-=======
 		Addr:     config.Redis().RedisHost + ":" + strconv.Itoa(config.Redis().RedisPort),
 		Password: config.Redis().RedisPassword,
->>>>>>> 7c24600b3e0f8c0f52a829a6de3d955802976c72
 		DB:       0,
 	})
 	_, err := RDb.Ping(Ctx).Result()
