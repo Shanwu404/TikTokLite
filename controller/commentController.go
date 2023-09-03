@@ -43,6 +43,7 @@ func (cc *CommentController) CommentAction(c *gin.Context) {
 	actionType := c.Query("action_type")
 	if actionType == "1" {
 		content := c.Query("comment_text")
+		content = utils.Filter.Replace(content, '#')
 		// 获取当前用户
 		userId := c.GetInt64("id")
 		// 获取当前视频
