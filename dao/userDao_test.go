@@ -11,7 +11,7 @@ func TestInsertUser(t *testing.T) {
 		Username: "John",
 		Password: "password",
 	}
-	err := InsertUser(&user1)
+	err := InsertUser(user1)
 	fmt.Println(err)
 }
 
@@ -27,12 +27,6 @@ func TestQueryUserByUsername(t *testing.T) {
 	user, err := QueryUserByUsername("John")
 	fmt.Println(user)
 	fmt.Println(err)
-}
-
-func TestQueryAllNames(t *testing.T) {
-	Init()
-	usernames := QueryAllNames()
-	fmt.Println(usernames)
 }
 
 func TestIsUserIdExist(t *testing.T) {

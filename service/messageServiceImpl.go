@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/Shanwu404/TikTokLite/log/logger"
 	"log"
 	"time"
 
@@ -28,7 +29,7 @@ func (MessageServiceImpl) QueryMessagesByIdsAfter(fromUserId int64, toUserId int
 	for i := range messages {
 		results = append(results, MessageParams(messages[i]))
 	}
-	log.Println("Query messages successfully!")
+	logger.Infoln("Query messages successfully!")
 	return results
 }
 

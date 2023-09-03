@@ -1,12 +1,12 @@
 package service
 
 import (
+	"github.com/Shanwu404/TikTokLite/dao"
+	"github.com/Shanwu404/TikTokLite/log/logger"
 	"github.com/Shanwu404/TikTokLite/middleware/redis"
 	"github.com/Shanwu404/TikTokLite/utils"
 	"log"
 	"strconv"
-
-	"github.com/Shanwu404/TikTokLite/dao"
 )
 
 type CommentServiceImpl struct{}
@@ -18,13 +18,13 @@ func NewCommentService() CommentService {
 func (CommentServiceImpl) QueryCommentsByVideoId(id int64) []CommentParams {
 	comments, err := dao.QueryCommentsByVideoId(id)
 	if err != nil {
-		log.Println("error:", err.Error())
+		logger.Errorln("error:", err.Error())
 	}
 	results := make([]CommentParams, 0, len(comments))
 	for i := range comments {
 		results = append(results, CommentParams(comments[i]))
 	}
-	log.Println("Query comments successfully!")
+	logger.Infoln("Query comments successfully!")
 	return results
 }
 
@@ -67,10 +67,10 @@ func (CommentServiceImpl) CountComments(id int64) int64 {
 	}
 	cnt, err = dao.CountComments(id)
 	if err != nil {
-		log.Println("count from db error:", err)
+		logger.Errorln("count from db error:", err)
 		return 0
 	}
-	log.Println("count comments successfully!")
+	logger.Infoln("count comments successfully!")
 	return cnt
 }
 

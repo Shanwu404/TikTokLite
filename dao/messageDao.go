@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"log"
+	"github.com/Shanwu404/TikTokLite/log/logger"
 	"time"
 )
 
@@ -21,7 +21,7 @@ func QueryMessagesByIdsAfter(fromUserId int64, toUserId int64, createdTime time.
 		Or("to_user_id = ? AND from_user_id = ? AND create_time >= ?", fromUserId, toUserId, createdTime).
 		Order("create_time ASC").
 		Find(&messages).Error; err != nil {
-		log.Println(err)
+		logger.Errorln(err)
 		return messages, err
 	}
 	return messages, nil
@@ -30,7 +30,7 @@ func QueryMessagesByIdsAfter(fromUserId int64, toUserId int64, createdTime time.
 // InsertMessage 插入消息
 func InsertMessage(message Message) (Message, error) {
 	if err := db.Model(Message{}).Create(&message).Error; err != nil {
-		log.Println(err)
+		logger.Errorln(err)
 		return Message{}, err
 	}
 	return message, nil

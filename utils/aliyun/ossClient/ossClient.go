@@ -1,10 +1,10 @@
 package ossClient
 
 import (
-	"log"
 	"mime/multipart"
 
 	"github.com/Shanwu404/TikTokLite/config"
+	"github.com/Shanwu404/TikTokLite/log/logger"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/aliyun/credentials-go/credentials"
 )
@@ -53,7 +53,7 @@ type MyBucket struct {
 	*oss.Bucket
 }
 
-var myConfig = config.OSS
+var myConfig = config.OSS()
 
 func NewBucket(mode string) (*MyBucket, error) {
 	config := new(credentials.Config).
@@ -69,13 +69,13 @@ func NewBucket(mode string) (*MyBucket, error) {
 	provider := NewStaticCredentialsProvider(ecsCredential)
 	client, err := oss.New(myConfig.Endpoint[mode], "", "", oss.SetCredentialsProvider(&provider))
 	if err != nil {
-		log.Println("Error:", err)
+		logger.Errorln("Failed to init OSS client:", err)
 		return nil, err
 	}
 	// 存储空间名称
 	bucket, err := client.Bucket(myConfig.BucketName)
 	if err != nil {
-		log.Println("Error:", err)
+		logger.Errorln("Failed to init bucket:", err)
 		return nil, err
 	}
 	return &MyBucket{bucket}, nil
@@ -84,11 +84,12 @@ func NewBucket(mode string) (*MyBucket, error) {
 func (mb *MyBucket) UploadVideo(file *multipart.FileHeader, internalURL string) error {
 	fileStrem, err := file.Open()
 	if err != nil {
+		logger.Errorln("Failed to open multipart file:", internalURL, err)
 		return err
 	}
 	err = mb.PutObject(internalURL, fileStrem)
 	if err != nil {
-		log.Println("Error:", err)
+		logger.Errorln("Failed to put object via GO SDK:", internalURL, err)
 		return err
 	}
 	return nil
@@ -99,7 +100,7 @@ func (mb *MyBucket) ObjectExternalURL(internalURL string) (signedURL string, err
 	for i := 0; i < 5; i++ {
 		signedURL, err = mb.SignURL(internalURL, oss.HTTPGet, 600)
 		if err != nil {
-			log.Println("Error when get video URL:", err)
+			logger.Errorln("Failed to get video URL:", internalURL, err)
 			continue
 		}
 		return signedURL, nil

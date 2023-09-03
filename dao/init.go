@@ -25,15 +25,16 @@ func Init() {
 	)
 
 	var (
-		account      = config.Database.Account
-		password     = config.Database.Password
-		ip           = config.Database.IP
-		port         = config.Database.Port
-		databaseName = config.Database.DatabaseName
-		protocol     = config.Database.Protocol
-		charset      = config.Database.Charset
-		parsetime    = config.Database.ParseTime
-		timeZone     = config.Database.TimeZone
+		myConfig     = config.Database()
+		account      = myConfig.Account
+		password     = myConfig.Password
+		ip           = myConfig.IP
+		port         = myConfig.Port
+		databaseName = myConfig.DatabaseName
+		protocol     = myConfig.Protocol
+		charset      = myConfig.Charset
+		parsetime    = myConfig.ParseTime
+		timeZone     = myConfig.TimeZone
 	)
 
 	dsn := fmt.Sprintf(

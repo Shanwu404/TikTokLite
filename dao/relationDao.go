@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"log"
+	"github.com/Shanwu404/TikTokLite/log/logger"
 )
 
 // 定义用户信息结构体
@@ -19,13 +19,6 @@ type UserInfo struct {
 	FavoriteCount   int64  `json:"favorite_count"`   // 喜欢数
 }
 
-// 定义朋友信息结构体
-type FriendInfo struct {
-	UserInfo UserInfo `json:"user_info"` // 朋友用户信息
-	Message  string   `json:"message"`   // 朋友消息
-	MsgType  int64    `json:"msg_type"`  // 消息类型
-}
-
 // 定义关注关系结构体
 type Follow struct {
 	ToUserId   int64 `gorm:"column:to_user_id"`  // 被关注用户ID
@@ -39,9 +32,10 @@ func InsertFollow(userId int64, followId int64) error {
 		FollowerId: userId,   // 执行关注的用户ID
 	}
 	if err := db.Table("follows").Create(&follow).Error; err != nil {
+		logger.Errorln(err)
 		return err // 如果插入出错，则返回错误
 	}
-	log.Println("Insert follow success")
+	logger.Infoln("Insert follow success")
 	return nil
 }
 
@@ -49,10 +43,10 @@ func InsertFollow(userId int64, followId int64) error {
 func DeleteFollow(userId int64, followId int64) error {
 	err := db.Table("follows").Where("to_user_id = ? and follower_id = ?", followId, userId).Delete(&Follow{}).Error
 	if err != nil {
-		log.Println("Delete follow error: ", err.Error())
+		logger.Errorln("Delete follow error: ", err.Error())
 		return err
 	}
-	log.Println("Delete follow success")
+	logger.Infoln("Delete follow success")
 	return nil
 }
 
@@ -61,10 +55,10 @@ func IsFollowed(userId int64, followId int64) (bool, error) {
 	var count int64
 	err := db.Model(&Follow{}).Where("follower_id = ? and to_user_id = ?", userId, followId).Count(&count).Error
 	if err != nil {
-		log.Println("Judge is follow error: ", err.Error())
+		logger.Errorln("Judge is follow error: ", err.Error())
 		return false, err
 	}
-	log.Println("Judge is follow by UserId success")
+	logger.Infoln("Judge is follow by UserId success")
 	return count > 0, nil
 }
 
@@ -73,10 +67,10 @@ func QueryFollowersIdByUserId(userId int64) ([]int64, error) {
 	var followersId []int64
 	err := db.Table("follows").Where("to_user_id = ?", userId).Pluck("follower_id", &followersId).Error
 	if err != nil {
-		log.Println("Query followers error: ", err.Error())
+		logger.Errorln("Query followers error: ", err.Error())
 		return nil, err
 	}
-	log.Println("Query followers Id by UserId success")
+	logger.Infoln("Query followers Id by UserId success")
 	return followersId, nil
 }
 
@@ -85,10 +79,10 @@ func QueryFollowsIdByUserId(userId int64) ([]int64, error) {
 	var followsId []int64
 	err := db.Table("follows").Where("follower_id = ?", userId).Pluck("to_user_id", &followsId).Error
 	if err != nil {
-		log.Println("Query follows error: ", err.Error())
+		logger.Errorln("Query follows error: ", err.Error())
 		return nil, err
 	}
-	log.Println("Query follows success")
+	logger.Infoln("Query follows success")
 	return followsId, nil
 }
 
@@ -97,10 +91,10 @@ func CountFollowers(userId int64) (int64, error) {
 	var count int64
 	err := db.Table("follows").Where("to_user_id = ?", userId).Count(&count).Error
 	if err != nil {
-		log.Println("Count followers error: ", err.Error())
+		logger.Errorln("Count followers error: ", err.Error())
 		return 0, err
 	}
-	log.Println("Count followers success")
+	logger.Infoln("Count followers success")
 	return count, nil
 }
 
@@ -109,9 +103,9 @@ func CountFollows(userId int64) (int64, error) {
 	var count int64
 	err := db.Table("follows").Where("follower_id = ?", userId).Count(&count).Error
 	if err != nil {
-		log.Println("Count follows error: ", err.Error())
+		logger.Errorln("Count follows error: ", err.Error())
 		return 0, err
 	}
-	log.Println("Count follows success")
+	logger.Infoln("Count follows success")
 	return count, nil
 }

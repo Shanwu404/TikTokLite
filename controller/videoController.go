@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"log"
 	"net/http"
 	"time"
 
+	"github.com/Shanwu404/TikTokLite/log/logger"
 	"github.com/Shanwu404/TikTokLite/service"
 
 	"github.com/gin-gonic/gin"
@@ -77,7 +77,8 @@ func (vc *VideoController) PublishAction(c *gin.Context) {
 	// err := c.SaveUploadedFile(req.Data, "videos/"+filename)
 	author, err := vc.userService.QueryUserByUsername(c.GetString("username"))
 	if err != nil {
-		log.Println("[PublishAction]Error when query userID:", err)
+		// log.Println("[PublishAction]Error when query userID:", err)
+		logger.Errorln("[PublishAction]Error when query userID:", err)
 		c.JSON(http.StatusInternalServerError, douyinPublishActionResponse{
 			Response: Response{2, "Recording Failed."},
 		})
@@ -92,7 +93,8 @@ func (vc *VideoController) PublishAction(c *gin.Context) {
 	}
 	err = vc.videoService.StoreVideo(req.Data, filename, &video)
 	if err != nil {
-		log.Println("Uploading failed:" + err.Error())
+		// log.Println("Uploading failed:" + err.Error())
+		logger.Errorln("[PublishAction]Uploading failed:", err)
 		c.JSON(http.StatusInternalServerError, douyinPublishActionResponse{
 			Response: Response{1, "Uploading Failed."},
 		})
@@ -113,6 +115,12 @@ func (vc *VideoController) PublishList(c *gin.Context) {
 	}
 	userId := c.GetInt64("id")
 	userWorks := vc.videoService.GetVideoListByUserId(reqParams.UserID)
+	if len(userWorks) == 0 {
+		c.JSON(http.StatusOK, douyinPublishListResponse{
+			Response: Response{0, "Get Publish List."},
+		})
+		return
+	}
 	authorInfo := UserInfo{Id: userWorks[0].AuthorID} // 同一个用户的视频，所以作者信息是一样的
 	vc.completeUserInfo(&authorInfo, userId)
 	videoList := make([]Video, len(userWorks))

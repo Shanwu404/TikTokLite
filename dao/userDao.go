@@ -1,57 +1,45 @@
 package dao
 
 import (
-	"log"
+	"github.com/Shanwu404/TikTokLite/log/logger"
 )
 
 type User struct {
 	ID       int64
 	Username string
-	Password string
+	Password string `json:"-"`
 }
 
 // InsertUser 新增用户
-func InsertUser(user *User) error {
-	err := db.Create(user).Error
+func InsertUser(user User) error {
+	err := db.Create(&user).Error
 	if err != nil {
-		log.Println(err.Error())
+		logger.Errorln(err)
 	}
 	return err
 }
 
 // QueryUserByID 根据ID查询User
-func QueryUserByID(id int64) (*User, error) {
-	user := &User{}
-	result := db.Where("id = ?", id).First(user)
+func QueryUserByID(id int64) (User, error) {
+	var user User
+	result := db.Where("id = ?", id).First(&user)
 	if err := result.Error; err != nil {
-		log.Println(err.Error())
-		return nil, err
+		logger.Errorln(err, id)
+		return User{}, err
 	}
 	return user, nil
 }
 
-// QueryUserByUsername 根据ID查询User
-func QueryUserByUsername(username string) (*User, error) {
-	user := &User{}
-	result := db.Where("username = ?", username).First(user)
+// QueryUserByUsername 根据Username查询User
+func QueryUserByUsername(username string) (User, error) {
+	var user User
+	result := db.Where("username = ?", username).First(&user)
 
 	if err := result.Error; err != nil {
-		log.Println(err.Error())
-		return nil, err
+		logger.Errorln(err, username)
+		return User{}, err
 	}
 	return user, nil
-}
-
-func QueryAllNames() []string {
-	usernames := make([]string, 0)
-	result := db.Table("users").Pluck("username", &usernames)
-
-	if err := result.Error; err != nil {
-		log.Println(err.Error())
-		return []string{}
-	}
-
-	return usernames
 }
 
 // 查询用户ID是否存在
@@ -59,7 +47,7 @@ func IsUserIdExist(id int64) bool {
 	user := &User{}
 	result := db.Where("id = ?", id).First(user)
 	if err := result.Error; err != nil {
-		log.Println(err.Error())
+		logger.Errorln(err)
 		return false
 	}
 	return true

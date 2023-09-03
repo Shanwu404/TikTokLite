@@ -5,23 +5,25 @@ import (
 	"testing"
 
 	"github.com/Shanwu404/TikTokLite/dao"
+	"github.com/Shanwu404/TikTokLite/middleware/redis"
 )
 
 func UserServiceImplInit() {
 	dao.Init()
+	redis.InitRedis()
 }
 
 func TestUserServiceImpl_QueryUserByName(t *testing.T) {
 	UserServiceImplInit()
-	usi := UserServiceImpl{}
-	user, err := usi.QueryUserByUsername("Lihua")
+	usi := NewUserService()
+	user, err := usi.QueryUserByUsername("John")
 	fmt.Println(user)
 	fmt.Println(err)
 }
 
 func TestUserServiceImpl_QueryUserByID(t *testing.T) {
 	UserServiceImplInit()
-	usi := UserServiceImpl{}
+	usi := NewUserService()
 	user, err := usi.QueryUserByID(1)
 	fmt.Println(user)
 	fmt.Println(err)
@@ -39,6 +41,13 @@ func TestUserServiceImpl_Login(t *testing.T) {
 	usi := UserServiceImpl{}
 	code, message := usi.Login("Lqs", "1000")
 	fmt.Println(code, message)
+}
+
+func TestIsUserIdExist(t *testing.T) {
+	UserServiceImplInit()
+	usi := NewUserService()
+	exist := usi.IsUserIdExist(9)
+	fmt.Println(exist)
 }
 
 func TestComparePasswords(t *testing.T) {

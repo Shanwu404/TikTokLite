@@ -98,8 +98,8 @@ CREATE TABLE `messages`
     `content`      varchar(500)    NOT NULL COMMENT '消息内容',
     `create_time`  datetime(4)     NOT NULL COMMENT '消息发送时间',
     PRIMARY KEY (`id`),
-    INDEX (`from_user_id`, `to_user_id`)
-    INDEX (`create_time`),
+    INDEX (`from_user_id`, `to_user_id`),
+    INDEX (`create_time`)
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1
   COMMENT ='消息表';

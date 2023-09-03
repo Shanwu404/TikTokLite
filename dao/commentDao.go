@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"log"
+	"github.com/Shanwu404/TikTokLite/log/logger"
 	"time"
 )
 
@@ -17,7 +17,7 @@ type Comment struct {
 func QueryCommentsByVideoId(id int64) ([]Comment, error) {
 	var comments []Comment
 	if err := db.Where("video_id = ?", id).Find(&comments).Error; err != nil {
-		log.Println(err.Error())
+		logger.Errorln(err.Error())
 		return comments, err
 	}
 	return comments, nil
@@ -26,7 +26,7 @@ func QueryCommentsByVideoId(id int64) ([]Comment, error) {
 // InsertComment 插入评论
 func InsertComment(comment Comment) (Comment, error) {
 	if err := db.Model(Comment{}).Create(&comment).Error; err != nil {
-		log.Println(err.Error())
+		logger.Errorln(err.Error())
 		return Comment{}, err
 	}
 	return comment, nil
@@ -36,7 +36,7 @@ func InsertComment(comment Comment) (Comment, error) {
 func DeleteComment(id int64) bool {
 	var comment Comment
 	if err := db.Where("id = ?", id).First(&comment).Error; err != nil {
-		log.Println(err.Error())
+		logger.Errorln(err.Error())
 		return false
 	}
 	db.Delete(&comment)
