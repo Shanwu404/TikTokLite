@@ -84,11 +84,11 @@ func Rabbitmq() rabbitmqConfig {
 
 // 无论被import多少次init()都只执行一次
 func init() {
-	configFilePath := "config/config_debug.toml"
+	configFilePath := "D:/研一/TikTokLite/config/config.toml"
 	mode := flag.String("mode", "debug", `"debug" or "release"`)
 	switch *mode {
 	case "release":
-		configFilePath = `config/config_` + *mode + `.toml`
+		configFilePath = `D:/研一/TikTokLite/config/config_` + *mode + `.toml`
 	default:
 	}
 	_, err := toml.DecodeFile(configFilePath, &appConfig)
