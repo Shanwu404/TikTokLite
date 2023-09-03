@@ -1,10 +1,10 @@
 package auth
 
 import (
-	"log"
 	"net/http"
 	"os"
 
+	"github.com/Shanwu404/TikTokLite/log/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -27,13 +27,15 @@ func Auth(c *gin.Context) {
 		}
 	}
 	if len(signaturedString) == 0 && c.Request.URL.Path == "/douyin/feed/" {
-		log.Println("Feeding without token.")
+		logger.Infoln("Feeding without token.")
 		return
 	}
 	if len(signaturedString) == 0 {
 		c.Abort()
 		c.JSON(
-			http.StatusUnauthorized,
+			// 这里用401客户端会报网络错误
+			// http.StatusUnauthorized,
+			http.StatusOK,
 			Response{
 				StatusCode: -1,
 				StatusMsg:  "Please verify the login status.",
@@ -50,17 +52,17 @@ func Auth(c *gin.Context) {
 	claims, ok := decodedToken.Claims.(*customClaims)
 	switch {
 	case err == nil && ok && decodedToken.Valid:
-		log.Println("Token Right:", claims.Name, claims.Id)
+		logger.Infoln("Valid Token:", claims.Name, claims.Id)
 		c.Set("username", claims.Name)
 		c.Set("id", claims.Id)
 		return
 	default:
-		log.Println("Token Error.")
+		logger.Infoln("Invalid token.")
 		c.AbortWithStatusJSON(
 			http.StatusUnauthorized,
 			Response{
 				StatusCode: -1,
-				StatusMsg:  "Token Error.",
+				StatusMsg:  "Invalid token.",
 			})
 	}
 }

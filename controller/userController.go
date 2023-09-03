@@ -6,6 +6,7 @@ import (
 
 	"github.com/Shanwu404/TikTokLite/middleware/auth"
 	"github.com/Shanwu404/TikTokLite/service"
+	"github.com/Shanwu404/TikTokLite/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,6 +44,16 @@ type RegisterRequest struct {
 
 // Register POST /douyin/user/register/ 用户注册
 func (uc *UserController) Register(c *gin.Context) {
+	// 获取客户端IP地址
+	clientIP := c.ClientIP()
+	// 检查IP是否被限制
+	if isLimited := utils.IsRateLimited(clientIP); isLimited {
+		c.JSON(http.StatusOK, LoginResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "注册失败次数过多，请稍后再试"},
+		})
+		return
+	}
+
 	// 可以修改为查询JSON
 	username := c.Query("username")
 	password := c.Query("password")
@@ -67,6 +78,16 @@ func (uc *UserController) Register(c *gin.Context) {
 
 // Login POST /douyin/user/login/ 用户登录
 func (uc *UserController) Login(c *gin.Context) {
+	// 获取客户端IP地址
+	clientIP := c.ClientIP()
+	// 检查IP是否被限制
+	if isLimited := utils.IsRateLimited(clientIP); isLimited {
+		c.JSON(http.StatusOK, LoginResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "登录失败次数过多，请稍后再试"},
+		})
+		return
+	}
+
 	username := c.Query("username")
 	password := c.Query("password")
 

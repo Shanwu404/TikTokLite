@@ -2,28 +2,26 @@ package config
 
 import (
 	"errors"
+	"flag"
+	"fmt"
 
 	"github.com/BurntSushi/toml"
 )
 
-var RabbitMQ_username=''
-var RabbitMQ_passsword = 
-var RabbitMQ_IP = 
-var RabbitMQ_host = 
-
-var AppConfig struct {
-	HTTPServer HTTPServerConfig
-	Database   DatabaseConfig
-	OSS        OSSConfig
-	Redis      RedisConfig
+var appConfig struct {
+	HTTPServer _HTTPServerConfig
+	Database   databaseConfig
+	OSS        _OSSConfig
+	Redis      redisConfig
+	Rabbitmq   rabbitmqConfig
 }
 
-type HTTPServerConfig struct {
+type _HTTPServerConfig struct {
 	IP   string
 	Port int
 }
 
-type DatabaseConfig struct {
+type databaseConfig struct {
 	IP           string
 	Port         int
 	Account      string
@@ -35,28 +33,66 @@ type DatabaseConfig struct {
 	TimeZone     string
 }
 
-type OSSConfig struct {
+type _OSSConfig struct {
 	CredentialType     string
 	CredentialRoleName string
 	Endpoint           map[string]string
 	BucketName         string
 }
 
-type RedisConfig struct {
-	Redis_host     string
-	Redis_port     int
-	Redis_password string
+type redisConfig struct {
+	RedisHost     string
+	RedisPort     int
+	RedisPassword string
 }
 
-var (
-	HTTPServer = &AppConfig.HTTPServer
-	Database   = &AppConfig.Database
-	OSS        = &AppConfig.OSS
-	Redis      = &AppConfig.Redis
-)
+type rabbitmqConfig struct {
+	RabbitmqUsername string
+	RabbitmqPassword string
+	RabbitmqHost     string
+	RabbitmqPort     int
+}
 
+// type logConfig struct {
+// 	LogRootPath string
+// 	LogLevel    []string
+// }
+
+func HTTPServer() _HTTPServerConfig {
+	return appConfig.HTTPServer
+}
+
+func Database() databaseConfig {
+	return appConfig.Database
+}
+
+func OSS() _OSSConfig {
+	return appConfig.OSS
+}
+
+func Redis() redisConfig {
+	return appConfig.Redis
+}
+
+func Rabbitmq() rabbitmqConfig {
+	return appConfig.Rabbitmq
+}
+
+// func Log() logConfig {
+// 	return appConfig.log
+// }
+
+// 无论被import多少次init()都只执行一次
 func init() {
-	_, err := toml.DecodeFile(`../config/config.toml`, &AppConfig)
+	configFilePath := "D:/研一/TikTokLite/config/config_debug.toml"
+	mode := flag.String("mode", "debug", `"debug" or "release"`)
+	switch *mode {
+	case "release":
+		configFilePath = `config/config_` + *mode + `.toml`
+	default:
+	}
+	_, err := toml.DecodeFile(configFilePath, &appConfig)
+	fmt.Println("\n\n   111", appConfig)
 	if err != nil {
 		err = errors.Join(errors.New("read config file failed"), err)
 		panic(err)

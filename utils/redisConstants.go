@@ -33,8 +33,12 @@ var LikeVideoKeyTTL = Day*7 + Day*time.Duration(DayRandnum)
 // UserIdKey key:userId value:User_struct
 const UserIdKey = "user:id:"
 
+var UserIdKeyTTL = Day*7 + Day*time.Duration(DayRandnum)
+
 // UserNameKey key:username value:userId
 const UserNameKey = "user:name:"
+
+var UserNameKeyTTL = Day*7 + Day*time.Duration(DayRandnum)
 
 /*------------------------ relation模块--------------------------*/
 

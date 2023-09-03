@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Shanwu404/TikTokLite/dao"
+	"github.com/Shanwu404/TikTokLite/log/logger"
 	"github.com/Shanwu404/TikTokLite/middleware/rabbitmq"
 	"github.com/Shanwu404/TikTokLite/middleware/redis"
 	"github.com/Shanwu404/TikTokLite/utils"
@@ -281,10 +282,10 @@ func (like *LikeServiceImpl) GetLikeLists(userId int64) []VideoParams {
 func (like *LikeServiceImpl) addVideoLikeCount(videoId int64, sum *int64) {
 	count, err := dao.CountLikes(videoId)
 	if err != nil {
-		log.Println("video likes adding failed")
+		logger.Errorln("video likes adding failed:", err)
 		return
 	}
-	log.Println("the number of like getting successfully!")
+	logger.Infoln("the number of like getting successfully!")
 	*sum += count
 }
 
@@ -521,7 +522,7 @@ func (like *LikeServiceImpl) TotalFavorited(userId int64) int64 {
 	for _, video := range videos {
 		likesForVideo, err := dao.CountLikes(video.ID) // 假设video有一个ID字段
 		if err != nil {
-			log.Println("Error counting likes for video ID:", video.ID, "Error:", err)
+			logger.Errorln("Error counting likes for video ID:", video.ID, "Error:", err)
 			continue // 如果发生错误, 记录错误并继续处理下一个视频
 		}
 		totalFavorites += likesForVideo
