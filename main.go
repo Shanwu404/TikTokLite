@@ -9,6 +9,7 @@ import (
 	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/log/logger"
 	"github.com/Shanwu404/TikTokLite/middleware/redis"
+	"github.com/Shanwu404/TikTokLite/utils"
 )
 
 func main() {
@@ -28,4 +29,5 @@ func initDeps() {
 	dao.Init()
 	rabbitmq.Init()
 	redis.InitRedis()
+	utils.InitWordsFilter()
 }
