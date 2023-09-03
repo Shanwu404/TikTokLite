@@ -3,9 +3,11 @@ package service
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/log/logger"
+	"github.com/Shanwu404/TikTokLite/middleware/rabbitmq"
 	"github.com/Shanwu404/TikTokLite/middleware/redis"
 	"github.com/Shanwu404/TikTokLite/utils"
 )
@@ -45,17 +47,12 @@ func (rs *RelationServiceImpl) Follow(userId int64, followId int64) (bool, error
 		return false, fmt.Errorf("userId %d has already followed user %d", userId, followId)
 	}
 
-	// 插入新的关注关系
-	if err := dao.InsertFollow(userId, followId); err != nil {
-		return false, err
-	}
-	logger.Infof("user %d followed user %d", userId, followId)
-
-	// 将新关注关系添加到Redis缓存
-	redisFollowKey := utils.RelationFollowKey + strconv.FormatInt(userId, 10)
-	redis.RDb.SAdd(redis.Ctx, redisFollowKey, followId)
-	// 更新过期时间
-	redis.RDb.Expire(redis.Ctx, redisFollowKey, utils.RelationFollowKeyTTL)
+	// 启用消息队列
+	sb := strings.Builder{}
+	sb.WriteString(strconv.FormatInt(userId, 10))
+	sb.WriteString(",")
+	sb.WriteString(strconv.FormatInt(followId, 10))
+	rabbitmq.RabbitMQRelationAdd.Producer(sb.String())
 
 	// 保证数据一致性：主动使count缓存失效
 	redisFollowCntKey := utils.RelationFollowCntKey + strconv.FormatInt(userId, 10)
@@ -77,17 +74,12 @@ func (rs *RelationServiceImpl) UnFollow(userId int64, followId int64) (bool, err
 		return false, fmt.Errorf("userId %d has not followed user %d", userId, followId)
 	}
 
-	// 删除关注关系
-	if err := dao.DeleteFollow(userId, followId); err != nil {
-		return false, err
-	}
-	logger.Infof("user %d unfollowed user %d", userId, followId)
-
-	// 从Redis中移除关注关系
-	redisFollowKey := utils.RelationFollowKey + strconv.FormatInt(userId, 10)
-	redis.RDb.SRem(redis.Ctx, redisFollowKey, followId)
-	// 更新过期时间
-	redis.RDb.Expire(redis.Ctx, redisFollowKey, utils.RelationFollowKeyTTL)
+	// 启用消息队列
+	sb := strings.Builder{}
+	sb.WriteString(strconv.FormatInt(userId, 10))
+	sb.WriteString(",")
+	sb.WriteString(strconv.FormatInt(followId, 10))
+	rabbitmq.RabbitMQRelationDel.Producer(sb.String())
 
 	// 保证数据一致性：主动使count缓存失效
 	redisFollowCntKey := utils.RelationFollowCntKey + strconv.FormatInt(userId, 10)
