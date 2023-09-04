@@ -29,6 +29,7 @@ func initDeps() {
 	dao.Init()
 	rabbitmq.Init()
 	rabbitmq.InitCommentMQ()
+	rabbitmq.InitRelationMQ()
 	redis.InitRedis()
 	utils.InitWordsFilter()
 }
