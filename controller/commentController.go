@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/Shanwu404/TikTokLite/service"
@@ -93,24 +94,46 @@ func (cc *CommentController) CommentList(c *gin.Context) {
 	videoId, _ := strconv.ParseInt(id, 10, 64)
 	video := cc.videoService.QueryVideoById(videoId)
 	comments := cc.commentService.QueryCommentsByVideoId(videoId)
-	var commonList []CommentInfo
-	for _, comment := range comments {
-		user, err := cc.userService.QueryUserByID(comment.UserId)
-		if err != nil {
-			continue
-		}
-		userInfo, _ := cc.userService.QueryUserInfoByID(user.ID)
-		isFollow, _ := cc.relationService.IsFollowed(user.ID, video.AuthorID)
-		userInfo.IsFollow = isFollow
-		commonList = append(commonList, CommentInfo{
-			Id:         comment.Id,
-			User:       userInfo,
-			Content:    comment.Content,
-			CreateDate: utils.TimeToStr(comment.CreateDate),
-		})
+	// var commentList []CommentInfo
+	// for _, comment := range comments {
+	// 	user, err := cc.userService.QueryUserByID(comment.UserId)
+	// 	if err != nil {
+	// 		continue
+	// 	}
+	// 	userInfo, _ := cc.userService.QueryUserInfoByID(user.ID)
+	// 	isFollow, _ := cc.relationService.IsFollowed(user.ID, video.AuthorID)
+	// 	userInfo.IsFollow = isFollow
+	// 	commentList = append(commentList, CommentInfo{
+	// 		Id:         comment.Id,
+	// 		User:       userInfo,
+	// 		Content:    comment.Content,
+	// 		CreateDate: utils.TimeToStr(comment.CreateDate),
+	// 	})
+	// }
+	commentList := make([]CommentInfo, len(comments))
+	var wg sync.WaitGroup
+	wg.Add(len(comments))
+	for idx, comment := range comments {
+		go func(idx int, comment service.CommentParams) {
+			defer wg.Done()
+			user, err := cc.userService.QueryUserByID(comment.UserId)
+			if err != nil {
+				return
+			}
+			userInfo, _ := cc.userService.QueryUserInfoByID(user.ID)
+			isFollow, _ := cc.relationService.IsFollowed(user.ID, video.AuthorID)
+			userInfo.IsFollow = isFollow
+			commentList[idx] = CommentInfo{
+				Id:         comment.Id,
+				User:       userInfo,
+				Content:    comment.Content,
+				CreateDate: utils.TimeToStr(comment.CreateDate),
+			}
+		}(idx, comment)
 	}
+	wg.Wait()
 	c.JSON(http.StatusOK, CommentListResponse{
 		Response:    Response{StatusCode: 0, StatusMsg: "success"},
-		CommentList: commonList,
+		CommentList: commentList,
 	})
 }

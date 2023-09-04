@@ -1,12 +1,14 @@
 package service
 
 import (
-	"github.com/Shanwu404/TikTokLite/dao"
-	"github.com/Shanwu404/TikTokLite/log/logger"
-	"github.com/Shanwu404/TikTokLite/middleware/redis"
-	"github.com/Shanwu404/TikTokLite/utils"
 	"log"
 	"strconv"
+
+	"github.com/Shanwu404/TikTokLite/dao"
+	"github.com/Shanwu404/TikTokLite/log/logger"
+	"github.com/Shanwu404/TikTokLite/middleware/rabbitmq"
+	"github.com/Shanwu404/TikTokLite/middleware/redis"
+	"github.com/Shanwu404/TikTokLite/utils"
 )
 
 type CommentServiceImpl struct{}
@@ -47,6 +49,7 @@ func (CommentServiceImpl) DeleteComment(id int64) (int32, string) {
 		videoId, _ := redis.RDb.Get(redis.Ctx, redisCommentKey).Result()
 		redisVideoKey := utils.CommentVideoKey + videoId
 		CommentDeleteRedis(redisCommentKey, redisVideoKey, id)
+		rabbitmq.CommentDel.Producer(strconv.FormatInt(id, 10))
 	}
 	flag := dao.DeleteComment(id)
 	if flag == false {
