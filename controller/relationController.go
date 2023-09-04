@@ -189,7 +189,7 @@ func (rc *RelationController) FriendList(c *gin.Context) {
 		c.JSON(http.StatusOK, UserListResponse{
 			Response: Response{
 				StatusCode: -1,
-				StatusMsg:  "user_id error",
+				StatusMsg:  "token鉴权失败, 好友列表不可见",
 			},
 			UserList: nil,
 		})
