@@ -2,10 +2,11 @@ package rabbitmq
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/Shanwu404/TikTokLite/config"
 	"github.com/Shanwu404/TikTokLite/log/logger"
 	"github.com/streadway/amqp"
-	"strconv"
 )
 
 type RabbitMQ struct {

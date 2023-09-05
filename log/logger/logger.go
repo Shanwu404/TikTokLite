@@ -17,7 +17,7 @@ func init() {
 	loggerInfoConfig := zap.NewDevelopmentConfig()
 	loggerInfoConfig.Encoding = "console"
 	loggerInfoConfig.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
-	loggerInfoConfig.OutputPaths = []string{"log/info.log"}
+	loggerInfoConfig.OutputPaths = []string{"D:/研一/TikTokLite/log/info.log"}
 	loggerInfo_, err := loggerInfoConfig.Build(zap.AddCallerSkip(1))
 	errHandler(err)
 	loggerInfo = loggerInfo_.Sugar()
@@ -25,7 +25,7 @@ func init() {
 	loggerDebugConfig := zap.NewDevelopmentConfig()
 	loggerDebugConfig.Encoding = "console"
 	loggerDebugConfig.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
-	loggerDebugConfig.OutputPaths = []string{"log/debug.log"}
+	loggerDebugConfig.OutputPaths = []string{"D:/研一/TikTokLite/log/debug.log"}
 	loggerDebug_, err := loggerDebugConfig.Build(zap.AddCallerSkip(1))
 	errHandler(err)
 	loggerDebug = loggerDebug_.Sugar()
@@ -35,7 +35,7 @@ func init() {
 	loggerErrorConfig.Level = zap.NewAtomicLevelAt(zap.ErrorLevel)
 	loggerErrorConfig.DisableStacktrace = true
 	// debug 或者 release一样
-	loggerErrorConfig.OutputPaths = []string{"log/error.log", "stderr"}
+	loggerErrorConfig.OutputPaths = []string{"D:/研一/TikTokLite/log/error.log", "stderr"}
 	loggerError_, err := loggerErrorConfig.Build(zap.AddCallerSkip(1))
 	errHandler(err)
 	loggerError = loggerError_.Sugar()

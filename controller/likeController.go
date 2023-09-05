@@ -39,6 +39,12 @@ func (lc *LikeController) FavoriteAction(c *gin.Context) {
 	userId := c.GetInt64("id")
 	id := c.Query("video_id")
 	videoId, _ := strconv.ParseInt(id, 10, 64)
+
+	// if !redis.CuckooFilterVideoId.Contain([]byte(strconv.FormatInt(videoId, 10))) {
+	// 	c.JSON(http.StatusOK, likeResponse{StatusCode: 1, StatusMsg: "视频不存在！"})
+	// 	return
+	// }
+
 	if actionType == "1" {
 		if err := lsi.Like(userId, videoId); err != nil {
 			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "failed"})
