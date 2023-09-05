@@ -30,6 +30,7 @@ func initDeps() {
 	rabbitmq.Init()
 	rabbitmq.InitCommentMQ()
 	rabbitmq.InitRelationMQ()
+	rabbitmq.InitLikeRabbitMQ()
 	redis.InitRedis()
 	utils.InitWordsFilter()
 }
