@@ -6,7 +6,7 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/Shanwu404/TikTokLite)
 
 <div align="center">
-<img src="images/logo.png" alt="logo" width="400" height="400"/>
+<img src="images/logo.png" alt="logo" width="472" height="328"/>
 </div>
 
 ## 目录
