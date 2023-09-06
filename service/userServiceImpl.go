@@ -271,9 +271,9 @@ func isValidUsername(username string) bool {
 		return false
 	}
 
-	// 检查用户名是否只包含字母和数字
+	// 检查用户名是否只包含 ASCII 字母和数字
 	for _, ch := range username {
-		if !unicode.IsLetter(ch) && !unicode.IsDigit(ch) {
+		if (ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') && (ch < '0' || ch > '9') {
 			return false
 		}
 	}
@@ -291,9 +291,9 @@ func isValidPassword(password string) bool {
 		return false
 	}
 
-	// 密码只包括字母、数字和标点符号
+	// 密码只包括 ASCII 字母、数字和标点符号
 	for _, ch := range password {
-		if !unicode.IsLetter(ch) && !unicode.IsDigit(ch) && !unicode.IsPunct(ch) {
+		if (ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') && (ch < '0' || ch > '9') && !unicode.IsPunct(ch) {
 			return false
 		}
 	}
