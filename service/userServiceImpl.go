@@ -152,7 +152,7 @@ func (us *UserServiceImpl) Register(username string, password string) (int64, in
 		Password: encoderPassword,
 	}
 
-	err = dao.InsertUser(newUser)
+	newUser.ID, err = dao.InsertUser(newUser)
 	if err != nil {
 		logger.Errorln("User registration error:", err)
 		return 0, 1, "User registration failed!"
@@ -238,9 +238,9 @@ func (us *UserServiceImpl) QueryUserInfoByID(userId int64) (UserInfoParams, erro
 	followerCount, _ := us.relationService.CountFollowers(userId)
 	favoriteCount, _ := us.likeService.LikeVideoCount(userId)
 	totalFavorited := us.likeService.TotalFavorited(userId)
-	// videos := us.videoService.GetVideoListByUserId(userId)
-	// workCount := int64(len(videos))
-	workCount := int64(10)
+	videos := us.videoService.GetVideoListByUserId(userId)
+	workCount := int64(len(videos))
+	// workCount := int64(10)
 
 	userInfo := UserInfoParams{
 		Id:              user.ID,
@@ -263,7 +263,7 @@ func (us *UserServiceImpl) QueryUserInfoByID(userId int64) (UserInfoParams, erro
 func isValidUsername(username string) bool {
 	// 用户名长度限制为3-12个字符
 	const minUsernameLength = 3
-	const maxUsernameLength = 12
+	const maxUsernameLength = 32
 	length := len(username)
 
 	// 检查长度是否在范围内
@@ -283,17 +283,17 @@ func isValidUsername(username string) bool {
 
 func isValidPassword(password string) bool {
 	// 密码长度限制为3-12个字符
-	const minPasswordLength = 3
-	const maxPasswordLength = 12
+	const minPasswordLength = 5
+	const maxPasswordLength = 32
 	length := len(password)
 
 	if length < minPasswordLength || length > maxPasswordLength {
 		return false
 	}
 
-	// 密码只包括字母、数字和标点符号
+	// 密码只包括 ASCII 字母、数字和标点符号
 	for _, ch := range password {
-		if !unicode.IsLetter(ch) && !unicode.IsDigit(ch) && !unicode.IsPunct(ch) {
+		if (ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') && (ch < '0' || ch > '9') && !unicode.IsPunct(ch) {
 			return false
 		}
 	}

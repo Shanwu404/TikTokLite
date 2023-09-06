@@ -68,3 +68,12 @@ func TestQueryUserInfoByID(t *testing.T) {
 	fmt.Println(userInfo)
 	fmt.Println(err)
 }
+
+func BenchmarkUserServiceImpl_QueryUserInfoByID(b *testing.B) {
+	UserServiceImplInit()
+	userService := NewUserService()
+
+	for i := 0; i < b.N; i++ {
+		userService.QueryUserInfoByID(2)
+	}
+}

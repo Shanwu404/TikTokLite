@@ -17,6 +17,17 @@ const CommentCommentKey = "comment:comment:"
 // CommentVideoKey key:videoId value:commentIds
 const CommentVideoKey = "comment:video:"
 
+// 喜欢模块
+const LikeUserKey = "like:user:"
+
+const LikeVideokey = "like:video:"
+
+const MyDefault = -1
+
+var LikeUserKeyTTL = Day*7 + Day*time.Duration(DayRandnum)
+
+var LikeVideoKeyTTL = Day*7 + Day*time.Duration(DayRandnum)
+
 /*------------------------ user模块-----------------------------*/
 
 // UserIdKey key:userId value:User_struct
