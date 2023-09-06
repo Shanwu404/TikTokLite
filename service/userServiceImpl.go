@@ -238,9 +238,9 @@ func (us *UserServiceImpl) QueryUserInfoByID(userId int64) (UserInfoParams, erro
 	followerCount, _ := us.relationService.CountFollowers(userId)
 	favoriteCount, _ := us.likeService.LikeVideoCount(userId)
 	totalFavorited := us.likeService.TotalFavorited(userId)
-	// videos := us.videoService.GetVideoListByUserId(userId)
-	// workCount := int64(len(videos))
-	workCount := int64(10)
+	videos := us.videoService.GetVideoListByUserId(userId)
+	workCount := int64(len(videos))
+	// workCount := int64(10)
 
 	userInfo := UserInfoParams{
 		Id:              user.ID,
@@ -263,7 +263,7 @@ func (us *UserServiceImpl) QueryUserInfoByID(userId int64) (UserInfoParams, erro
 func isValidUsername(username string) bool {
 	// 用户名长度限制为3-12个字符
 	const minUsernameLength = 3
-	const maxUsernameLength = 12
+	const maxUsernameLength = 32
 	length := len(username)
 
 	// 检查长度是否在范围内
@@ -271,9 +271,9 @@ func isValidUsername(username string) bool {
 		return false
 	}
 
-	// 检查用户名是否只包含 ASCII 字母和数字
+	// 检查用户名是否只包含字母和数字
 	for _, ch := range username {
-		if (ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') && (ch < '0' || ch > '9') {
+		if !unicode.IsLetter(ch) && !unicode.IsDigit(ch) {
 			return false
 		}
 	}
@@ -283,8 +283,8 @@ func isValidUsername(username string) bool {
 
 func isValidPassword(password string) bool {
 	// 密码长度限制为3-12个字符
-	const minPasswordLength = 3
-	const maxPasswordLength = 12
+	const minPasswordLength = 5
+	const maxPasswordLength = 32
 	length := len(password)
 
 	if length < minPasswordLength || length > maxPasswordLength {
