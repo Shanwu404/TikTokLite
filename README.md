@@ -1,8 +1,8 @@
 # TikTokLite
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/Shanwu404/TikTokLite)
+![GitHub commit-activity](https://img.shields.io/github/commit-activity/y/Shanwu404/TikTokLite)
 ![GitHub watchers](https://img.shields.io/github/watchers/Shanwu404/TikTokLite)
-![GitHub forks](https://img.shields.io/github/forks/Shanwu404/TikTokLite)
 ![GitHub contributors](https://img.shields.io/github/contributors/Shanwu404/TikTokLite)
 
 基于 Gin 和 GORM 的仿抖音后端，采用 MVC 架构搭建，引入 Redis 和 RabbitMQ 进行优化，实现了低负载和高性能。
