@@ -11,12 +11,13 @@ type User struct {
 }
 
 // InsertUser 新增用户
-func InsertUser(user User) error {
+func InsertUser(user User) (int64, error) {
 	err := db.Create(&user).Error
 	if err != nil {
 		logger.Errorln(err)
+		return 0, err
 	}
-	return err
+	return user.ID, nil
 }
 
 // QueryUserByID 根据ID查询User

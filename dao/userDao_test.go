@@ -9,9 +9,10 @@ func TestInsertUser(t *testing.T) {
 	Init()
 	user1 := User{
 		Username: "John",
-		Password: "password",
+		Password: "123456",
 	}
-	err := InsertUser(user1)
+	userId, err := InsertUser(user1)
+	fmt.Println(userId)
 	fmt.Println(err)
 }
 

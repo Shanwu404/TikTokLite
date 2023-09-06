@@ -152,7 +152,7 @@ func (us *UserServiceImpl) Register(username string, password string) (int64, in
 		Password: encoderPassword,
 	}
 
-	err = dao.InsertUser(newUser)
+	newUser.ID, err = dao.InsertUser(newUser)
 	if err != nil {
 		logger.Errorln("User registration error:", err)
 		return 0, 1, "User registration failed!"
