@@ -1,12 +1,18 @@
 package service
 
 import (
+	"bytes"
+	"errors"
+	"fmt"
+	"io"
 	"mime/multipart"
+	"os"
 	"time"
 
 	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/log/logger"
 	"github.com/Shanwu404/TikTokLite/utils/aliyun/ossClient"
+	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
 const (
@@ -35,6 +41,10 @@ func (vService *VideoServiceImpl) GetMultiVideoBefore(latestTimestamp int64, cou
 		if err != nil {
 			logger.Errorln("Get object url error:", err)
 		}
+		videos[i].CoverURL, err = mb.ObjectExternalURL(videos[i].CoverURL)
+		if err != nil {
+			logger.Errorln("Get video cover url error:", err)
+		}
 		videoSlc = append(videoSlc, VideoParams(videos[i]))
 	}
 	return videoSlc
@@ -53,10 +63,20 @@ func (vService *VideoServiceImpl) StoreVideo(dataHeader *multipart.FileHeader, f
 		return err
 	}
 	video.PlayURL = internalURL
+
+	frame := captureFrame(dataHeader, fileName)
+	if frame != nil {
+		internalImageURL := "images/" + fileName
+		err = mb.PutObject(internalImageURL, frame)
+		if err != nil {
+			logger.Errorln("Upload frame failed:", err)
+		}
+		video.CoverURL = internalImageURL
+	}
+
 	err = vService.InsertVideosTable(video)
 	if err != nil {
 		logger.Errorln("Insert video table failed:", err)
-		// 可优化的点：删除OSS视频，保持事务原子性
 		return err
 	}
 	return nil
@@ -91,6 +111,10 @@ func (vService *VideoServiceImpl) GetVideoListByUserId(AuthorID int64) []VideoPa
 		if err != nil {
 			logger.Errorln("Get object url error:", err)
 		}
+		videos[i].CoverURL, err = mb.ObjectExternalURL(videos[i].CoverURL)
+		if err != nil {
+			logger.Errorln("Get video cover url error:", err)
+		}
 		results = append(results, VideoParams(videos[i]))
 	}
 	return results
@@ -106,8 +130,46 @@ func (vService *VideoServiceImpl) QueryVideoById(videoID int64) VideoParams {
 	// 视频实际链接很适合放入redis，设置过期时间
 	videoFromDao.PlayURL, err = mb.ObjectExternalURL(videoFromDao.PlayURL)
 	if err != nil {
-		logger.Errorln("Get object url error:", err)
+		logger.Errorln("Get video play url error:", err)
+	}
+	videoFromDao.CoverURL, err = mb.ObjectExternalURL(videoFromDao.CoverURL)
+	if err != nil {
+		logger.Errorln("Get video cover url error:", err)
 	}
 	video := VideoParams(videoFromDao)
 	return video
+}
+
+func captureFrame(dataHeader *multipart.FileHeader, filename string) io.Reader {
+	tempVideoPath := "videos/" + filename
+	tempVideo, err := os.Create(tempVideoPath)
+	if err != nil {
+		logger.Errorln(errors.Join(errors.New("保存临时本地视频文件失败：创建失败："), err))
+		return nil
+	}
+	defer os.Remove(tempVideoPath)
+
+	videodata, err := dataHeader.Open()
+	if err != nil {
+		logger.Errorln(errors.Join(errors.New("保存临时本地视频文件失败：提取失败："), err))
+		return nil
+	}
+
+	_, err = io.Copy(tempVideo, videodata)
+	if err != nil {
+		logger.Errorln(errors.Join(errors.New("保存临时本地视频文件失败：保存失败："), err))
+		return nil
+	}
+
+	buf := bytes.NewBuffer(nil)
+	err = ffmpeg.Input(tempVideoPath).
+		Filter("select", ffmpeg.Args{fmt.Sprintf("gte(n,%d)", 1)}).
+		Output("pipe:", ffmpeg.KwArgs{"vframes": 1, "format": "image2", "vcodec": "mjpeg"}).
+		WithOutput(buf).
+		Run()
+	if err != nil {
+		logger.Errorln(errors.Join(errors.New("保存临时本地视频文件失败：创建失败："), err))
+		return nil
+	}
+	return buf
 }

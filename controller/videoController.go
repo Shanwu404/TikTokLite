@@ -77,7 +77,6 @@ func (vc *VideoController) PublishAction(c *gin.Context) {
 	// err := c.SaveUploadedFile(req.Data, "videos/"+filename)
 	author, err := vc.userService.QueryUserByUsername(c.GetString("username"))
 	if err != nil {
-		// log.Println("[PublishAction]Error when query userID:", err)
 		logger.Errorln("[PublishAction]Error when query userID:", err)
 		c.JSON(http.StatusInternalServerError, douyinPublishActionResponse{
 			Response: Response{2, "Recording Failed."},
@@ -93,7 +92,6 @@ func (vc *VideoController) PublishAction(c *gin.Context) {
 	}
 	err = vc.videoService.StoreVideo(req.Data, filename, &video)
 	if err != nil {
-		// log.Println("Uploading failed:" + err.Error())
 		logger.Errorln("[PublishAction]Uploading failed:", err)
 		c.JSON(http.StatusInternalServerError, douyinPublishActionResponse{
 			Response: Response{1, "Uploading Failed."},
@@ -134,7 +132,6 @@ func (vc *VideoController) PublishList(c *gin.Context) {
 }
 
 // --------------------------------
-// 这部分工具函数也要跟随组装数据代码一起放入单独一层
 
 func (vc *VideoController) combineVideoAndAuthor(video *service.VideoParams, author *UserInfo, result *Video, userId int64) {
 	flag := vc.likeService.IsLike(video.ID, userId)
