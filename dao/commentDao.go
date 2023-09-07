@@ -1,8 +1,9 @@
 package dao
 
 import (
-	"github.com/Shanwu404/TikTokLite/log/logger"
 	"time"
+
+	"github.com/Shanwu404/TikTokLite/log/logger"
 )
 
 type Comment struct {
@@ -16,7 +17,7 @@ type Comment struct {
 // QueryCommentsByVideoId 根据视频id查询评论列表
 func QueryCommentsByVideoId(id int64) ([]Comment, error) {
 	var comments []Comment
-	if err := db.Where("video_id = ?", id).Find(&comments).Error; err != nil {
+	if err := db.Where("video_id = ?", id).Order("create_date DESC").Find(&comments).Error; err != nil {
 		logger.Errorln(err.Error())
 		return comments, err
 	}
