@@ -100,7 +100,7 @@ func (mb *MyBucket) ObjectExternalURL(internalURL string) (signedURL string, err
 	for i := 0; i < 5; i++ {
 		signedURL, err = mb.SignURL(internalURL, oss.HTTPGet, 600)
 		if err != nil {
-			logger.Errorln("Failed to get video URL:", internalURL, err)
+			logger.Errorln("Failed to get object URL:", internalURL, err)
 			continue
 		}
 		return signedURL, nil
