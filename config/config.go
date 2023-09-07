@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 	"flag"
-	"fmt"
 
 	"github.com/BurntSushi/toml"
 )
@@ -86,13 +85,13 @@ func Rabbitmq() rabbitmqConfig {
 func init() {
 	configFilePath := "config/config_debug.toml"
 	mode := flag.String("mode", "debug", `"debug" or "release"`)
+	flag.Parse()
 	switch *mode {
 	case "release":
 		configFilePath = `config/config_` + *mode + `.toml`
 	default:
 	}
 	_, err := toml.DecodeFile(configFilePath, &appConfig)
-	fmt.Println("\n\n   111", appConfig)
 	if err != nil {
 		err = errors.Join(errors.New("read config file failed"), err)
 		panic(err)
