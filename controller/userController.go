@@ -7,6 +7,7 @@ import (
 	"github.com/Shanwu404/TikTokLite/middleware/auth"
 	"github.com/Shanwu404/TikTokLite/service"
 	"github.com/Shanwu404/TikTokLite/utils"
+	"github.com/Shanwu404/TikTokLite/utils/validation"
 
 	"github.com/gin-gonic/gin"
 )
@@ -54,9 +55,25 @@ func (uc *UserController) Register(c *gin.Context) {
 		return
 	}
 
-	// 可以修改为查询JSON
+	// 获取请求参数
 	username := c.Query("username")
 	password := c.Query("password")
+
+	// 检查用户名是否合法
+	if isValid := validation.IsValidUsername(username); !isValid {
+		c.JSON(http.StatusBadRequest, LoginResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "用户名不合法"},
+		})
+		return
+	}
+
+	// 检查密码是否合法
+	if isValid := validation.IsValidPassword(password); !isValid {
+		c.JSON(http.StatusBadRequest, LoginResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "密码不合法"},
+		})
+		return
+	}
 
 	userId, code, message := uc.userService.Register(username, password)
 
@@ -88,8 +105,25 @@ func (uc *UserController) Login(c *gin.Context) {
 		return
 	}
 
+	// 获取请求参数
 	username := c.Query("username")
 	password := c.Query("password")
+
+	// 检查用户名是否合法
+	if isValid := validation.IsValidUsername(username); !isValid {
+		c.JSON(http.StatusBadRequest, LoginResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "用户名不合法"},
+		})
+		return
+	}
+
+	// 检查密码是否合法
+	if isValid := validation.IsValidPassword(password); !isValid {
+		c.JSON(http.StatusBadRequest, LoginResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "密码不合法"},
+		})
+		return
+	}
 
 	code, message := uc.userService.Login(username, password)
 	if code != 0 {
