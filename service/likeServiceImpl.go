@@ -229,6 +229,9 @@ func (like *LikeServiceImpl) GetLikeLists(userId int64) []VideoParams {
 			return nil
 		}
 		videoIdList, err1 := redis.RDb.SMembers(redis.Ctx, key_userId).Result()
+		if len(videoIdList) > 0 {
+			videoIdList = videoIdList[1:]
+		}
 		log.Println(key_userId, videoIdList)
 		if err1 != nil {
 			log.Println("redis Query failed")
