@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"strconv"
 	"time"
-	"unicode"
 
 	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/log/logger"
@@ -111,17 +110,6 @@ func (us *UserServiceImpl) QueryUserByID(id int64) (dao.User, error) {
 
 // Register 用户注册，返回注册用户ID，状态码和状态信息
 func (us *UserServiceImpl) Register(username string, password string) (int64, int32, string) {
-
-	// 验证用户名和密码的合法性
-	if !isValidUsername(username) {
-		logger.Errorln("Invalid username format:", username)
-		return -1, 1, "Invalid username format!"
-	}
-	if !isValidPassword(password) {
-		logger.Errorln("Invalid password format")
-		return -1, 1, "Invalid password format!"
-	}
-
 	logger.Infoln("Registering user:", username)
 
 	// 获取分布式锁
@@ -174,16 +162,6 @@ func (us *UserServiceImpl) Register(username string, password string) (int64, in
 // Login 用户登录，返回状态码和状态信息
 func (us *UserServiceImpl) Login(username string, password string) (int32, string) {
 	logger.Infoln("Attempting login for user:", username)
-
-	// 验证用户名和密码的合法性
-	if !isValidUsername(username) {
-		logger.Errorln("Invalid username format:", username)
-		return 1, "Invalid username format!"
-	}
-	if !isValidPassword(password) {
-		logger.Errorln("Invalid password format")
-		return 1, "Invalid password format!"
-	}
 
 	user, err := dao.QueryUserByUsername(username)
 	if err != nil {
@@ -259,48 +237,6 @@ func (us *UserServiceImpl) QueryUserInfoByID(userId int64) (UserInfoParams, erro
 }
 
 /*------------------------ 以下为工具函数 ------------------------*/
-
-func isValidUsername(username string) bool {
-	// 用户名长度限制为3-12个字符
-	const minUsernameLength = 3
-	const maxUsernameLength = 32
-	length := len(username)
-
-	// 检查长度是否在范围内
-	if length < minUsernameLength || length > maxUsernameLength {
-		return false
-	}
-
-	// 检查用户名是否只包含字母和数字
-	for _, ch := range username {
-		if !unicode.IsLetter(ch) && !unicode.IsDigit(ch) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func isValidPassword(password string) bool {
-	// 密码长度限制为3-12个字符
-	const minPasswordLength = 5
-	const maxPasswordLength = 32
-	length := len(password)
-
-	if length < minPasswordLength || length > maxPasswordLength {
-		return false
-	}
-
-	// 密码只包括 ASCII 字母、数字和标点符号
-	for _, ch := range password {
-		if (ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') && (ch < '0' || ch > '9') && !unicode.IsPunct(ch) {
-			return false
-		}
-	}
-
-	return true
-}
-
 // HashEncode 加密密码
 func HashEncode(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
