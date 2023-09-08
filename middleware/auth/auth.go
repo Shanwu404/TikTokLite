@@ -33,7 +33,7 @@ func Auth(c *gin.Context) {
 	if len(signaturedString) == 0 {
 		c.Abort()
 		c.JSON(
-			// 这里用401客户端会报网络错误
+			// 这里用401客户端会显示网络错误，影响未登录用户体验
 			// http.StatusUnauthorized,
 			http.StatusOK,
 			Response{
@@ -59,7 +59,9 @@ func Auth(c *gin.Context) {
 	default:
 		logger.Infoln("Invalid token.")
 		c.AbortWithStatusJSON(
-			http.StatusUnauthorized,
+			// 这里用401客户端会显示网络错误，影响未登录用户体验
+			// http.StatusUnauthorized,
+			http.StatusOK,
 			Response{
 				StatusCode: -1,
 				StatusMsg:  "Invalid token.",
