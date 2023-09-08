@@ -132,16 +132,22 @@ func (uc *UserController) GetUserInfo(c *gin.Context) {
 		return
 	}
 
-	if isExisted := uc.userService.IsUserIdExist(userId); !isExisted {
-		{
-			c.JSON(http.StatusOK, UserResponse{
-				Response: Response{StatusCode: 1, StatusMsg: "User does not exist"},
-			})
-			return
-		}
-	}
+	// if isExisted := uc.userService.IsUserIdExist(userId); !isExisted {
+	// 	{
+	// 		c.JSON(http.StatusOK, UserResponse{
+	// 			Response: Response{StatusCode: 1, StatusMsg: "User does not exist"},
+	// 		})
+	// 		return
+	// 	}
+	// }
 
-	userinfo, _ := uc.userService.QueryUserInfoByID(userId)
+	userinfo, err := uc.userService.QueryUserInfoByID(userId)
+	if err != nil {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{StatusCode: 1, StatusMsg: err.Error()},
+		})
+		return
+	}
 	c.JSON(http.StatusOK, UserResponse{
 		Response: Response{StatusCode: 0},
 		UserInfo: userinfo,
