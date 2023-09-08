@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"strconv"
 	"unicode"
 
 	"github.com/Shanwu404/TikTokLite/log/logger"
@@ -57,6 +58,16 @@ func RegisterParseAndValidateParams(c *gin.Context) (RegisterRequest, bool) {
 	}
 
 	return req, true
+}
+
+func GetUserInfoParseAndValidateParams(c *gin.Context) (int64, bool) {
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64) // 字符串转换为int64
+	if err != nil {
+		logger.Errorln("Error parsing user ID:", err)
+		return 0, false
+	}
+
+	return userId, true
 }
 
 func IsValidUsername(username string) bool {

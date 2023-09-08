@@ -2,7 +2,6 @@ package controller
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/Shanwu404/TikTokLite/middleware/auth"
 	"github.com/Shanwu404/TikTokLite/service"
@@ -124,22 +123,15 @@ func (uc *UserController) Login(c *gin.Context) {
 
 // GetUserInfo GET /douyin/user/ 用户信息
 func (uc *UserController) GetUserInfo(c *gin.Context) {
-	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64) // 字符串转int64
-	if err != nil {
-		c.JSON(http.StatusBadRequest, UserResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "Invalid user ID format"},
+
+	// 解析请求参数并校验
+	userId, isValid := validation.GetUserInfoParseAndValidateParams(c)
+	if !isValid {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "用户ID不合法"},
 		})
 		return
 	}
-
-	// if isExisted := uc.userService.IsUserIdExist(userId); !isExisted {
-	// 	{
-	// 		c.JSON(http.StatusOK, UserResponse{
-	// 			Response: Response{StatusCode: 1, StatusMsg: "User does not exist"},
-	// 		})
-	// 		return
-	// 	}
-	// }
 
 	userinfo, err := uc.userService.QueryUserInfoByID(userId)
 	if err != nil {
