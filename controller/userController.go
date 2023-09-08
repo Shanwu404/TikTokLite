@@ -53,10 +53,7 @@ func (uc *UserController) Register(c *gin.Context) {
 		return
 	}
 
-	username := req.Username
-	password := req.Password
-
-	userId, code, message := uc.userService.Register(username, password)
+	userId, code, message := uc.userService.Register(req.Username, req.Password)
 
 	if code != 0 {
 		c.JSON(http.StatusOK, LoginResponse{
@@ -64,7 +61,7 @@ func (uc *UserController) Register(c *gin.Context) {
 		})
 		return
 	} else {
-		token, _ := auth.GenerateToken(username, userId)
+		token, _ := auth.GenerateToken(req.Username, userId)
 		c.JSON(http.StatusOK, LoginResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 			UserId:   userId,
@@ -95,16 +92,13 @@ func (uc *UserController) Login(c *gin.Context) {
 		return
 	}
 
-	username := req.Username
-	password := req.Password
-
-	code, message := uc.userService.Login(username, password)
+	code, message := uc.userService.Login(req.Username, req.Password)
 	if code != 0 {
 		c.JSON(http.StatusOK, LoginResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 		})
 	} else {
-		user, err := uc.userService.QueryUserByUsername(username)
+		user, err := uc.userService.QueryUserByUsername(req.Username)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, LoginResponse{
 				Response: Response{StatusCode: 1, StatusMsg: "Internal Server Error"},
