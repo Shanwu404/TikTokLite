@@ -281,17 +281,6 @@ func (like *LikeServiceImpl) GetLikeLists(userId int64) []VideoParams {
 
 }
 
-/*增加视频videoId的点赞数*/
-func (like *LikeServiceImpl) addVideoLikeCount(videoId int64, sum *int64) {
-	count, err := dao.CountLikes(videoId)
-	if err != nil {
-		logger.Errorln("video likes adding failed:", err)
-		return
-	}
-	logger.Infoln("the number of like getting successfully!")
-	*sum += count
-}
-
 /*获取用户userId喜欢的视频数量*/
 func (like *LikeServiceImpl) LikeVideoCount(userId int64) (int64, error) {
 	key_userId := utils.LikeUserKey + strconv.FormatInt(userId, 10)
@@ -388,7 +377,6 @@ func (like *LikeServiceImpl) IsLike(videoId int64, userId int64) bool {
 			log.Println("Redis query failed")
 			return false
 		}
-		log.Println("user in redis, the status is", isLike)
 		return isLike
 	} else { //如果key_userId不存在缓存中，查询key_videoId是否在缓存中
 		if n, err := redis.RDb.Exists(redis.Ctx, key_videoId).Result(); n > 0 { //如果key_userId存在缓存中

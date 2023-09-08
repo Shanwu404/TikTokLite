@@ -52,7 +52,7 @@ func (CommentServiceImpl) DeleteComment(id int64) (int32, string) {
 		rabbitmq.CommentDel.Producer(strconv.FormatInt(id, 10))
 	}
 	flag := dao.DeleteComment(id)
-	if flag == false {
+	if !flag {
 		return 1, "Delete comment failed!"
 	}
 	return 0, "Delete comment successfully!"
