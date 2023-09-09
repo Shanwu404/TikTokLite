@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	FeedLimit = 8
+	FeedLimit = 3
 )
 
 type VideoController struct {
