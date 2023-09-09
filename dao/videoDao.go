@@ -25,7 +25,7 @@ func InsertVideo(video Video) error {
 
 func QueryVideoByID(id int64) (Video, error) {
 	video := Video{}
-	err := db.Take(&video, id).Error
+	err := db.Take(&video, id).Error // Take查不到会返回err
 	if err != nil {
 		logger.Errorln(err, id)
 	}

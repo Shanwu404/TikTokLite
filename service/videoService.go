@@ -15,6 +15,9 @@ type VideoParams struct {
 }
 
 type VideoService interface {
+	// 根据视频ID判断视频是否存在
+	Exist(videoID int64) bool
+
 	// QueryVideoById 根据视频id获取视频
 	QueryVideoById(videoID int64) VideoParams
 
