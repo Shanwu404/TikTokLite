@@ -43,7 +43,7 @@ func (vService *VideoServiceImpl) Exist(videoID int64) bool {
 		redisValueJSON, err := json.Marshal(VideoParams(video))
 		if err != nil {
 			logger.Errorf("视频信息序列化失败，视频信息:%+v\n", video)
-			return false
+			return true
 		}
 		redis.RDb.SetNX(redis.Ctx, redisKey, redisValueJSON, 0)
 	}
