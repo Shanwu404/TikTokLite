@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
@@ -210,6 +211,11 @@ func (us *UserServiceImpl) IsUserIdExist(id int64) bool {
 // QueryUserInfoByID 根据用户ID查询用户信息
 func (us *UserServiceImpl) QueryUserInfoByID(userId int64) (UserInfoParams, error) {
 	logger.Infoln("Querying userinfo by ID:", userId)
+
+	// 判断用户ID是否存在
+	if isExisted := us.IsUserIdExist(userId); !isExisted {
+		return UserInfoParams{}, fmt.Errorf("user doesn't exist")
+	}
 
 	user, _ := us.QueryUserByID(userId)
 	followCount, _ := us.relationService.CountFollows(userId)

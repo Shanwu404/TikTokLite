@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/Shanwu404/TikTokLite/service"
+	"github.com/Shanwu404/TikTokLite/utils/validation"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,32 +29,21 @@ type UserListResponse struct {
 // RelationAction POST /douyin/relation/action/ 关注/取消关注
 func (rc *RelationController) RelationAction(c *gin.Context) {
 
-	// 1. 取出用户id
-	userId := c.GetInt64("id")
-
-	// 2. 判断to_user_id解析是否有误
-	followId, err := strconv.ParseInt(c.Query("to_user_id"), 10, 64)
-	if err != nil {
+	// 1. 解析关注/取关请求参数并校验
+	req, isValid := validation.RelationActionParseAndValidateParams(c)
+	if !isValid {
 		c.JSON(http.StatusOK, Response{
-			StatusCode: -1,
-			StatusMsg:  "followId error"})
+			StatusCode: 1,
+			StatusMsg:  "invalid params",
+		})
 		return
 	}
 
-	// 3. 判断actionType解释是否有误
-	actionType, err := strconv.ParseInt(c.Query("action_type"), 10, 64)
-	if err != nil || actionType < 1 || actionType > 2 {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: -1,
-			StatusMsg:  "actionType error"})
-		return
-	}
-
-	// 4. 执行关注/取关操作
+	// 执行关注/取关操作
 	switch {
-	case actionType == 1:
+	case req.ActionType == 1:
 		// 执行关注
-		flag, err := rc.relationService.Follow(userId, followId)
+		flag, err := rc.relationService.Follow(req.UserId, req.ToUserId)
 		if err != nil || !flag {
 			c.JSON(http.StatusOK, Response{
 				StatusCode: -1,
@@ -65,9 +55,9 @@ func (rc *RelationController) RelationAction(c *gin.Context) {
 			StatusMsg:  "follow success!"})
 		return
 
-	case actionType == 2:
+	case req.ActionType == 2:
 		// 执行取关
-		flag, err := rc.relationService.UnFollow(userId, followId)
+		flag, err := rc.relationService.UnFollow(req.UserId, req.ToUserId)
 		if err != nil || !flag {
 			c.JSON(http.StatusOK, Response{
 				StatusCode: -1,

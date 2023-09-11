@@ -2,7 +2,6 @@ package controller
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/Shanwu404/TikTokLite/middleware/auth"
 	"github.com/Shanwu404/TikTokLite/service"
@@ -33,16 +32,6 @@ type LoginResponse struct {
 	Token  string `json:"token"`
 }
 
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type RegisterRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 // Register POST /douyin/user/register/ 用户注册
 func (uc *UserController) Register(c *gin.Context) {
 	// 获取客户端IP地址
@@ -50,32 +39,21 @@ func (uc *UserController) Register(c *gin.Context) {
 	// 检查IP是否被限制
 	if isLimited := utils.IsRateLimited(clientIP); isLimited {
 		c.JSON(http.StatusOK, LoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "注册失败次数过多，请稍后再试"},
+			Response: Response{StatusCode: 1, StatusMsg: "注册请求次数过多，请稍后再试"},
 		})
 		return
 	}
 
-	// 获取请求参数
-	username := c.Query("username")
-	password := c.Query("password")
-
-	// 检查用户名是否合法
-	if isValid := validation.IsValidUsername(username); !isValid {
-		c.JSON(http.StatusBadRequest, LoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "用户名不合法"},
+	// 解析注册请求参数并校验
+	req, isValid := validation.RegisterParseAndValidateParams(c)
+	if !isValid {
+		c.JSON(http.StatusOK, LoginResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "用户名或密码不合法"},
 		})
 		return
 	}
 
-	// 检查密码是否合法
-	if isValid := validation.IsValidPassword(password); !isValid {
-		c.JSON(http.StatusBadRequest, LoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "密码不合法"},
-		})
-		return
-	}
-
-	userId, code, message := uc.userService.Register(username, password)
+	userId, code, message := uc.userService.Register(req.Username, req.Password)
 
 	if code != 0 {
 		c.JSON(http.StatusOK, LoginResponse{
@@ -83,7 +61,7 @@ func (uc *UserController) Register(c *gin.Context) {
 		})
 		return
 	} else {
-		token, _ := auth.GenerateToken(username, userId)
+		token, _ := auth.GenerateToken(req.Username, userId)
 		c.JSON(http.StatusOK, LoginResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 			UserId:   userId,
@@ -100,40 +78,31 @@ func (uc *UserController) Login(c *gin.Context) {
 	// 检查IP是否被限制
 	if isLimited := utils.IsRateLimited(clientIP); isLimited {
 		c.JSON(http.StatusOK, LoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "登录失败次数过多，请稍后再试"},
+			Response: Response{StatusCode: 1, StatusMsg: "登录请求次数过多, 请稍后再试"},
 		})
 		return
 	}
 
-	// 获取请求参数
-	username := c.Query("username")
-	password := c.Query("password")
-
-	// 检查用户名是否合法
-	if isValid := validation.IsValidUsername(username); !isValid {
-		c.JSON(http.StatusBadRequest, LoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "用户名不合法"},
+	// 解析登录请求参数并校验
+	req, isValid := validation.LoginParseAndValidateParams(c)
+	if !isValid {
+		c.JSON(http.StatusOK, LoginResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "用户名或密码不合法, 请检查"},
 		})
 		return
 	}
 
-	// 检查密码是否合法
-	if isValid := validation.IsValidPassword(password); !isValid {
-		c.JSON(http.StatusBadRequest, LoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "密码不合法"},
-		})
-		return
-	}
-
-	code, message := uc.userService.Login(username, password)
+	code, message := uc.userService.Login(req.Username, req.Password)
 	if code != 0 {
 		c.JSON(http.StatusOK, LoginResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 		})
 	} else {
-		user, err := uc.userService.QueryUserByUsername(username)
+		user, err := uc.userService.QueryUserByUsername(req.Username)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error occurred while retrieving user information"})
+			c.JSON(http.StatusInternalServerError, LoginResponse{
+				Response: Response{StatusCode: 1, StatusMsg: "Internal Server Error"},
+			})
 			return
 		}
 		token, _ := auth.GenerateToken(user.Username, user.ID)
@@ -148,24 +117,23 @@ func (uc *UserController) Login(c *gin.Context) {
 
 // GetUserInfo GET /douyin/user/ 用户信息
 func (uc *UserController) GetUserInfo(c *gin.Context) {
-	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64) // 字符串转int64
-	if err != nil {
-		c.JSON(http.StatusBadRequest, UserResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "Invalid user ID format"},
+
+	// 解析请求参数并校验
+	userId, isValid := validation.GetUserInfoParseAndValidateParams(c)
+	if !isValid {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "用户ID不合法"},
 		})
 		return
 	}
 
-	if isExisted := uc.userService.IsUserIdExist(userId); !isExisted {
-		{
-			c.JSON(http.StatusOK, UserResponse{
-				Response: Response{StatusCode: 1, StatusMsg: "User does not exist"},
-			})
-			return
-		}
+	userinfo, err := uc.userService.QueryUserInfoByID(userId)
+	if err != nil {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{StatusCode: 1, StatusMsg: err.Error()},
+		})
+		return
 	}
-
-	userinfo, _ := uc.userService.QueryUserInfoByID(userId)
 	c.JSON(http.StatusOK, UserResponse{
 		Response: Response{StatusCode: 0},
 		UserInfo: userinfo,

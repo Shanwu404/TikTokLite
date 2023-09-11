@@ -1,6 +1,74 @@
 package validation
 
-import "unicode"
+import (
+	"strconv"
+	"unicode"
+
+	"github.com/Shanwu404/TikTokLite/log/logger"
+	"github.com/gin-gonic/gin"
+)
+
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type RegisterRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func LoginParseAndValidateParams(c *gin.Context) (LoginRequest, bool) {
+	req := LoginRequest{
+		Username: c.Query("username"),
+		Password: c.Query("password"),
+	}
+
+	// 检查用户名是否合法
+	if isValid := IsValidUsername(req.Username); !isValid {
+		logger.Infoln("Invalid username:", req.Username)
+		return req, false
+	}
+
+	// 检查密码是否合法
+	if isValid := IsValidPassword(req.Password); !isValid {
+		logger.Infoln("Invalid password:", req.Password, "for username:", req.Username)
+		return req, false
+	}
+
+	return req, true
+}
+
+func RegisterParseAndValidateParams(c *gin.Context) (RegisterRequest, bool) {
+	req := RegisterRequest{
+		Username: c.Query("username"),
+		Password: c.Query("password"),
+	}
+
+	// 检查用户名是否合法
+	if isValid := IsValidUsername(req.Username); !isValid {
+		logger.Infoln("Invalid username:", req.Username)
+		return req, false
+	}
+
+	// 检查密码是否合法
+	if isValid := IsValidPassword(req.Password); !isValid {
+		logger.Infoln("Invalid password:", req.Password, "for username:", req.Username)
+		return req, false
+	}
+
+	return req, true
+}
+
+func GetUserInfoParseAndValidateParams(c *gin.Context) (int64, bool) {
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64) // 字符串转换为int64
+	if err != nil {
+		logger.Errorln("Error parsing user ID:", err)
+		return 0, false
+	}
+
+	return userId, true
+}
 
 func IsValidUsername(username string) bool {
 	// 用户名长度限制为3-12个字符
