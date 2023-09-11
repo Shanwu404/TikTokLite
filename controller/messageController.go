@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Shanwu404/TikTokLite/utils/validation"
-
 	"github.com/Shanwu404/TikTokLite/service"
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +26,7 @@ func NewMessageController() *MessageController {
 
 // MessageAction POST /douyin/message/action/ 发送消息
 func (ms *MessageController) MessageAction(c *gin.Context) {
-	req, valid := validation.MessageActionParseAndValidateParams(c)
+	req, valid := MessageActionParseAndValidateParams(c)
 	if !valid {
 		c.JSON(http.StatusBadRequest, douyinPublishActionResponse{
 			Response: Response{-1, "Invalid Request."},
@@ -48,7 +46,7 @@ func (ms *MessageController) MessageAction(c *gin.Context) {
 
 // MessageList GET /douyin/message/chat/ 聊天记录
 func (ms *MessageController) MessageList(c *gin.Context) {
-	req, valid := validation.MessageListParseAndValidateParams(c)
+	req, valid := MessageListParseAndValidateParams(c)
 	if !valid {
 		c.JSON(http.StatusBadRequest, douyinPublishActionResponse{
 			Response: Response{-1, "Invalid Request."},
