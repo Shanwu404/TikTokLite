@@ -7,7 +7,6 @@ import (
 
 	"github.com/Shanwu404/TikTokLite/service"
 	"github.com/Shanwu404/TikTokLite/utils"
-	"github.com/Shanwu404/TikTokLite/utils/validation"
 	"github.com/gin-gonic/gin"
 )
 
@@ -41,7 +40,7 @@ func NewCommentController() *CommentController {
 
 // CommentAction POST /douyin/comment/action/ 评论操作
 func (cc *CommentController) CommentAction(c *gin.Context) {
-	req, valid := validation.CommentActionParseAndValidateParams(c)
+	req, valid := CommentActionParseAndValidateParams(c)
 	if !valid {
 		c.JSON(http.StatusBadRequest, douyinPublishActionResponse{
 			Response: Response{-1, "Invalid Request."},
@@ -89,7 +88,7 @@ func (cc *CommentController) CommentAction(c *gin.Context) {
 
 // CommentList GET /douyin/comment/list/ 评论列表
 func (cc *CommentController) CommentList(c *gin.Context) {
-	req, valid := validation.CommentListParseAndValidateParams(c)
+	req, valid := CommentListParseAndValidateParams(c)
 	if !valid {
 		c.JSON(http.StatusBadRequest, douyinPublishActionResponse{
 			Response: Response{-1, "Invalid Request."},
