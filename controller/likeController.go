@@ -34,34 +34,53 @@ func NewLikeController() *LikeController {
 // FavoriteAction POST /douyin/favorite/action/ 赞操作
 func (lc *LikeController) FavoriteAction(c *gin.Context) {
 	lsi := service.LikeServiceImpl{}
+	usi := service.NewUserService()
+	vsi := service.NewVideoService()
 
+	//获取参数
 	actionType := c.Query("action_type")
 	userId := c.GetInt64("id")
 	id := c.Query("video_id")
 	videoId, _ := strconv.ParseInt(id, 10, 64)
 
-	// if !redis.CuckooFilterVideoId.Contain([]byte(strconv.FormatInt(videoId, 10))) {
-	// 	c.JSON(http.StatusOK, likeResponse{StatusCode: 1, StatusMsg: "视频不存在！"})
-	// 	return
-	// }
+	//参数校验
+	if actionType != "1" && actionType != "2" {
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "invalid action type!"})
+		return
+	}
+	flag := usi.IsUserIdExist(userId)
+	if !flag {
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "user doesn't exist!"})
+		return
+	}
+	flag2 := vsi.Exist(videoId)
+	if !flag2 {
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "video doesn't exist!"})
+		return
+	}
 
 	if actionType == "1" {
 		if err := lsi.Like(userId, videoId); err != nil {
 			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "failed"})
+			return
 		}
-		c.JSON(http.StatusOK, Response{StatusCode: 0, StatusMsg: "success"})
+		c.JSON(http.StatusOK, Response{StatusCode: 0, StatusMsg: "like success"})
 	} else if actionType == "2" {
 		if err := lsi.Unlike(userId, videoId); err != nil {
 			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "failed"})
+			return
 		}
-		c.JSON(http.StatusOK, Response{StatusCode: 0, StatusMsg: "success"})
+		c.JSON(http.StatusOK, Response{StatusCode: 0, StatusMsg: "unlike success"})
 	}
+
 }
 
 // FavoriteList GET /douyin/favorite/list/ 喜欢列表
 func (lc *LikeController) FavoriteList(c *gin.Context) {
 	var videoList []Video
+	usi := service.NewUserService()
 
+	//获取参数
 	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, FavoriteListResponse{
@@ -69,9 +88,16 @@ func (lc *LikeController) FavoriteList(c *gin.Context) {
 		})
 		return
 	}
+
+	//参数校验
+	flag := usi.IsUserIdExist(userId)
+	if !flag {
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "user doesn't exist!"})
+		return
+	}
+
 	videos := lc.likeService.GetLikeLists(userId)
 	// var videoList = make([]Video, 0, len(videos))
-
 	for _, videoParam := range videos { //将视频的详细信息格式化
 
 		authorInfo, _ := lc.userService.QueryUserInfoByID(videoParam.AuthorID)
