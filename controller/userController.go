@@ -6,7 +6,6 @@ import (
 	"github.com/Shanwu404/TikTokLite/middleware/auth"
 	"github.com/Shanwu404/TikTokLite/service"
 	"github.com/Shanwu404/TikTokLite/utils"
-	"github.com/Shanwu404/TikTokLite/utils/validation"
 
 	"github.com/gin-gonic/gin"
 )
@@ -45,7 +44,7 @@ func (uc *UserController) Register(c *gin.Context) {
 	}
 
 	// 解析注册请求参数并校验
-	req, isValid := validation.RegisterParseAndValidateParams(c)
+	req, isValid := RegisterParseAndValidateParams(c)
 	if !isValid {
 		c.JSON(http.StatusOK, LoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "用户名或密码不合法"},
@@ -84,7 +83,7 @@ func (uc *UserController) Login(c *gin.Context) {
 	}
 
 	// 解析登录请求参数并校验
-	req, isValid := validation.LoginParseAndValidateParams(c)
+	req, isValid := LoginParseAndValidateParams(c)
 	if !isValid {
 		c.JSON(http.StatusOK, LoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "用户名或密码不合法, 请检查"},
@@ -119,7 +118,7 @@ func (uc *UserController) Login(c *gin.Context) {
 func (uc *UserController) GetUserInfo(c *gin.Context) {
 
 	// 解析请求参数并校验
-	userId, isValid := validation.GetUserInfoParseAndValidateParams(c)
+	userId, isValid := GetUserInfoParseAndValidateParams(c)
 	if !isValid {
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "用户ID不合法"},

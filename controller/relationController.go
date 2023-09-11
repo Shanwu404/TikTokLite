@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/Shanwu404/TikTokLite/service"
-	"github.com/Shanwu404/TikTokLite/utils/validation"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,7 +29,7 @@ type UserListResponse struct {
 func (rc *RelationController) RelationAction(c *gin.Context) {
 
 	// 1. 解析关注/取关请求参数并校验
-	req, isValid := validation.RelationActionParseAndValidateParams(c)
+	req, isValid := RelationActionParseAndValidateParams(c)
 	if !isValid {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
