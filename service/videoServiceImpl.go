@@ -2,15 +2,18 @@ package service
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/Shanwu404/TikTokLite/dao"
 	"github.com/Shanwu404/TikTokLite/log/logger"
+	"github.com/Shanwu404/TikTokLite/middleware/redis"
 	"github.com/Shanwu404/TikTokLite/utils/aliyun/ossClient"
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
@@ -20,11 +23,31 @@ const (
 	external = "External"
 )
 
+// var videoMutex sync.RWMutex
+
 type VideoServiceImpl struct {
 }
 
 func NewVideoService() VideoService {
 	return &VideoServiceImpl{}
+}
+
+func (vService *VideoServiceImpl) Exist(videoID int64) bool {
+	redisKey := "video:" + strconv.FormatInt(videoID, 10)
+	exist := redis.RDb.Exists(redis.Ctx, redisKey).Val() == 1
+	if !exist {
+		video, err := dao.QueryVideoByID(videoID)
+		if err != nil {
+			return false
+		}
+		redisValueJSON, err := json.Marshal(VideoParams(video))
+		if err != nil {
+			logger.Errorf("视频信息序列化失败，视频信息:%+v\n", video)
+			return true
+		}
+		redis.RDb.SetNX(redis.Ctx, redisKey, redisValueJSON, 0)
+	}
+	return true
 }
 
 func (vService *VideoServiceImpl) GetMultiVideoBefore(latestTimestamp int64, count int) []VideoParams {
@@ -140,6 +163,8 @@ func (vService *VideoServiceImpl) QueryVideoById(videoID int64) VideoParams {
 	return video
 }
 
+// ----------------------------------private---------------------------------------------
+
 func captureFrame(dataHeader *multipart.FileHeader, filename string) io.Reader {
 	tempVideoPath := "videos/" + filename
 	tempVideo, err := os.Create(tempVideoPath)
@@ -173,3 +198,7 @@ func captureFrame(dataHeader *multipart.FileHeader, filename string) io.Reader {
 	}
 	return buf
 }
+
+// func readVideoByIDWithSync(videoID int64) VideoParams {
+// redis.RDb.HSet()
+// }

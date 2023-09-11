@@ -40,7 +40,7 @@ func GetLikeVideoIdList(userId int64) ([]int64, error) {
 	var likeVideoIdList []int64
 	err := db.Model(&Like{}).Where(map[string]interface{}{"user_id": userId}).Pluck("video_id", &likeVideoIdList).Error
 	if err != nil {
-		if "record not found" == err.Error() {
+		if err.Error() == "record not found" {
 			logger.Errorln("there are no likeVideoIds")
 			return likeVideoIdList, nil
 		} else {

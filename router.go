@@ -10,8 +10,7 @@ func NewRouter() *gin.Engine {
 	r := gin.Default()
 	// pprof.Register(r) // 性能分析
 	apiRouter := r.Group("/douyin")
-	apiRouter.Static("tiktok", "./videos") //测试用。配置静态资源路径
-
+	
 	userController := controller.NewUserController()
 	relationController := controller.NewRelationController()
 	videoController := controller.NewVideoController()

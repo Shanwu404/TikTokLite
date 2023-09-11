@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"reflect"
 	"strconv"
 
 	"github.com/Shanwu404/TikTokLite/service"
@@ -36,8 +35,8 @@ func CommentActionParseAndValidateParams(c *gin.Context) (CommentActionRequest, 
 	// 判断 videoId 是否存在
 	id := c.Query("video_id")
 	videoId, _ := strconv.ParseInt(id, 10, 64)
-	video := vsi.QueryVideoById(videoId)
-	if reflect.DeepEqual(video, service.VideoParams{}) {
+	flag2 := vsi.Exist(videoId)
+	if !flag2 {
 		return req, false
 	}
 	req.VideoId = videoId
@@ -70,7 +69,7 @@ func CommentListParseAndValidateParams(c *gin.Context) (CommentListRequest, bool
 	id := c.Query("video_id")
 	videoId, _ := strconv.ParseInt(id, 10, 64)
 	video := vsi.QueryVideoById(videoId)
-	if reflect.DeepEqual(video, service.VideoParams{}) {
+	if !vsi.Exist(videoId) {
 		return req, false
 	}
 	req.Video = video

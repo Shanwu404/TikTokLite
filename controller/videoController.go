@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	FeedLimit = 8
+	FeedLimit = 3
 )
 
 type VideoController struct {
@@ -159,9 +159,9 @@ func (vc *VideoController) completeUserInfo(userinfo *UserInfo, userId int64) {
 		FollowCount:     follows,   // followService提供
 		FollowerCount:   followers, // followService提供
 		IsFollow:        isFollow,  // followService提供
-		Avatar:          "https://image.zhihuishu.com/zhs/ablecommons/demo/201804/a3b5f5570a2740749d3c372848a18d6f.jpg",
-		BackgroundImage: "https://image.zhihuishu.com/zhs/ablecommons/demo/201804/a3b5f5570a2740749d3c372848a18d6f.jpg",
-		Signature:       "唯一不变是永远的改变",
+		Avatar:          "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171029672.jpg",
+		BackgroundImage: "https://mary-aliyun-img.oss-cn-beijing.aliyuncs.com/typora/202308171029672.jpg",
+		Signature:       "这个人很懒，什么都没有留下",
 		TotalFavorited:  vc.likeService.TotalFavorited(brief.ID), // likeService提供
 		WorkCount:       int64(len(vc.videoService.GetVideoListByUserId(userinfo.Id))),
 		FavoriteCount:   favorite_count, // likeService提供

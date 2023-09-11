@@ -10,8 +10,8 @@ var (
 )
 
 const (
-	BUCKET_CAPACITY = 5 // 令牌桶容量
-	FILL_RATE       = 1 // 每分钟填充令牌数
+	BUCKET_CAPACITY = 20 // 令牌桶容量
+	FILL_RATE       = 10 // 每分钟填充令牌数
 )
 
 // IsRateLimited 检查给定的IP地址是否受到速率限制
