@@ -41,7 +41,6 @@ func (ms *MessageController) MessageAction(c *gin.Context) {
 	}
 	_, code, messgae := ms.messageService.PublishMessage(message)
 	c.JSON(http.StatusOK, Response{StatusCode: code, StatusMsg: messgae})
-	return
 }
 
 // MessageList GET /douyin/message/chat/ 聊天记录
