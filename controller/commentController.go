@@ -2,11 +2,8 @@ package controller
 
 import (
 	"net/http"
-	"sync"
-	"time"
 
-	"github.com/Shanwu404/TikTokLite/service"
-	"github.com/Shanwu404/TikTokLite/utils"
+	"github.com/Shanwu404/TikTokLite/facade"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,20 +18,12 @@ type CommentActionResponse struct {
 }
 
 type CommentController struct {
-	userService     service.UserService
-	commentService  service.CommentService
-	relationService service.RelationService
-	videoService    service.VideoService
-	likeService     service.LikeService
+	commentFacade facade.CommentFacade
 }
 
 func NewCommentController() *CommentController {
 	return &CommentController{
-		userService:     service.NewUserService(),
-		commentService:  service.NewCommentService(),
-		relationService: service.NewRelationService(),
-		videoService:    service.NewVideoService(),
-		likeService:     service.NewLikeService(),
+		commentFacade: *facade.NewCommentFacade(),
 	}
 }
 
@@ -42,133 +31,24 @@ func NewCommentController() *CommentController {
 func (cc *CommentController) CommentAction(c *gin.Context) {
 	req, valid := CommentActionParseAndValidateParams(c)
 	if !valid {
-		c.JSON(http.StatusBadRequest, douyinPublishActionResponse{
+		c.JSON(http.StatusBadRequest, CommentActionResponse{
 			Response: Response{-1, "Invalid Request."},
 		})
 		return
 	}
-	if req.ActionType == "1" {
-		content := utils.Filter.Replace(req.Content, '#')
-		// 获取当前视频
-		video := cc.videoService.QueryVideoById(req.VideoId)
-		t := time.Now()
-		comment := service.CommentParams{
-			UserId:     req.UserId,
-			VideoId:    req.VideoId,
-			Content:    content,
-			CreateDate: t,
-		}
-		commentId, code, message := cc.commentService.PostComment(comment)
-		if code != 0 {
-			c.JSON(http.StatusOK, Response{
-				StatusCode: code,
-				StatusMsg:  message,
-			})
-			return
-		}
-		userInfo, _ := cc.userService.QueryUserInfoByID(req.UserId)
-		isFollow, _ := cc.relationService.IsFollowed(req.UserId, video.AuthorID)
-		userInfo.IsFollow = isFollow
-		c.JSON(http.StatusOK, CommentActionResponse{
-			Response: Response{StatusCode: code, StatusMsg: message},
-			CommentInfo: CommentInfo{
-				Id:         commentId,
-				User:       userInfo,
-				Content:    content,
-				CreateDate: utils.TimeToStr(t),
-			},
-		})
-		return
-	} else {
-		code, message := cc.commentService.DeleteComment(req.CommentId)
-		c.JSON(http.StatusOK, Response{StatusCode: code, StatusMsg: message})
-		return
-	}
+	c.JSON(http.StatusOK, cc.commentFacade.CommentAction(req))
+	return
 }
 
 // CommentList GET /douyin/comment/list/ 评论列表
 func (cc *CommentController) CommentList(c *gin.Context) {
 	req, valid := CommentListParseAndValidateParams(c)
 	if !valid {
-		c.JSON(http.StatusBadRequest, douyinPublishActionResponse{
+		c.JSON(http.StatusBadRequest, CommentListResponse{
 			Response: Response{-1, "Invalid Request."},
 		})
 		return
 	}
-	comments := cc.commentService.QueryCommentsByVideoId(req.Video.ID)
-	commentList := make([]CommentInfo, len(comments))
-	var wg sync.WaitGroup
-	wg.Add(len(comments))
-	for idx, comment := range comments {
-		go func(idx int, comment service.CommentParams) {
-			defer wg.Done()
-			user, err := cc.userService.QueryUserByID(comment.UserId)
-			if err != nil {
-				return
-			}
-			userInfo, _ := cc.userService.QueryUserInfoByID(user.ID)
-			isFollow, _ := cc.relationService.IsFollowed(user.ID, req.Video.AuthorID)
-			userInfo.IsFollow = isFollow
-			commentList[idx] = CommentInfo{
-				Id:         comment.Id,
-				User:       userInfo,
-				Content:    comment.Content,
-				CreateDate: utils.TimeToStr(comment.CreateDate),
-			}
-		}(idx, comment)
-	}
-	wg.Wait()
-	c.JSON(http.StatusOK, CommentListResponse{
-		Response:    Response{StatusCode: 0, StatusMsg: "success"},
-		CommentList: commentList,
-	})
+	c.JSON(http.StatusOK, cc.commentFacade.CommentList(req))
+	return
 }
-
-// // CommentAction POST /douyin/comment/action/ 评论操作
-// func (cc *CommentController) CommentAction(c *gin.Context) {
-// 	actionType := c.Query("action_type")
-// 	if actionType == "1" {
-// 		content := c.Query("comment_text")
-// 		content = utils.Filter.Replace(content, '#')
-// 		// 获取当前用户
-// 		userId := c.GetInt64("id")
-// 		// 获取当前视频
-// 		id := c.Query("video_id")
-// 		videoId, _ := strconv.ParseInt(id, 10, 64)
-// 		video := cc.videoService.QueryVideoById(videoId)
-// 		t := time.Now()
-// 		comment := service.CommentParams{
-// 			UserId:     userId,
-// 			VideoId:    videoId,
-// 			Content:    content,
-// 			CreateDate: t,
-// 		}
-// 		commentId, code, message := cc.commentService.PostComment(comment)
-// 		if code != 0 {
-// 			c.JSON(http.StatusOK, Response{
-// 				StatusCode: code,
-// 				StatusMsg:  message,
-// 			})
-// 			return
-// 		}
-// 		userInfo, _ := cc.userService.QueryUserInfoByID(userId)
-// 		isFollow, _ := cc.relationService.IsFollowed(userId, video.AuthorID)
-// 		userInfo.IsFollow = isFollow
-// 		c.JSON(http.StatusOK, CommentActionResponse{
-// 			Response: Response{StatusCode: code, StatusMsg: message},
-// 			CommentInfo: CommentInfo{
-// 				Id:         commentId,
-// 				User:       userInfo,
-// 				Content:    content,
-// 				CreateDate: utils.TimeToStr(t),
-// 			},
-// 		})
-// 		return
-// 	} else {
-// 		cId := c.Query("comment_id")
-// 		commentId, _ := strconv.ParseInt(cId, 10, 64)
-// 		code, message := cc.commentService.DeleteComment(commentId)
-// 		c.JSON(http.StatusOK, Response{StatusCode: code, StatusMsg: message})
-// 		return
-// 	}
-// }
