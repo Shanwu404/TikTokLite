@@ -3,24 +3,13 @@ package controller
 import (
 	"strconv"
 
+	"github.com/Shanwu404/TikTokLite/facade"
 	"github.com/Shanwu404/TikTokLite/service"
 	"github.com/gin-gonic/gin"
 )
 
-type CommentActionRequest struct {
-	UserId     int64
-	VideoId    int64
-	ActionType string
-	Content    string
-	CommentId  int64
-}
-
-type CommentListRequest struct {
-	Video service.VideoParams
-}
-
-func CommentActionParseAndValidateParams(c *gin.Context) (CommentActionRequest, bool) {
-	req := CommentActionRequest{}
+func CommentActionParseAndValidateParams(c *gin.Context) (facade.CommentActionRequest, bool) {
+	req := facade.CommentActionRequest{}
 	usi := service.NewUserService()
 	vsi := service.NewVideoService()
 
@@ -62,8 +51,8 @@ func CommentActionParseAndValidateParams(c *gin.Context) (CommentActionRequest, 
 	}
 }
 
-func CommentListParseAndValidateParams(c *gin.Context) (CommentListRequest, bool) {
-	req := CommentListRequest{}
+func CommentListParseAndValidateParams(c *gin.Context) (facade.CommentListRequest, bool) {
+	req := facade.CommentListRequest{}
 	vsi := service.NewVideoService()
 
 	id := c.Query("video_id")
