@@ -3,32 +3,20 @@ package controller
 import (
 	"net/http"
 
-	"github.com/Shanwu404/TikTokLite/middleware/auth"
-	"github.com/Shanwu404/TikTokLite/service"
+	"github.com/Shanwu404/TikTokLite/facade"
 	"github.com/Shanwu404/TikTokLite/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 type UserController struct {
-	userService service.UserService
+	userFacade *facade.UserFacade
 }
 
 func NewUserController() *UserController {
 	return &UserController{
-		userService: service.NewUserService(),
+		userFacade: facade.NewUserFacade(),
 	}
-}
-
-type UserResponse struct {
-	Response
-	UserInfo service.UserInfoParams `json:"user"` // 新的userinfo结构体
-}
-
-type LoginResponse struct {
-	Response
-	UserId int64  `json:"user_id,omitempty"`
-	Token  string `json:"token"`
 }
 
 // Register POST /douyin/user/register/ 用户注册
@@ -37,37 +25,22 @@ func (uc *UserController) Register(c *gin.Context) {
 	clientIP := c.ClientIP()
 	// 检查IP是否被限制
 	if isLimited := utils.IsRateLimited(clientIP); isLimited {
-		c.JSON(http.StatusOK, LoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "注册请求次数过多，请稍后再试"},
-		})
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "注册请求次数过多，请稍后再试"})
 		return
 	}
 
 	// 解析注册请求参数并校验
 	req, isValid := RegisterParseAndValidateParams(c)
 	if !isValid {
-		c.JSON(http.StatusOK, LoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "用户名或密码不合法"},
-		})
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "用户名或密码不合法"})
 		return
 	}
 
-	userId, code, message := uc.userService.Register(req.Username, req.Password)
+	// 执行注册操作
+	RegisterResponse := uc.userFacade.Register(req)
 
-	if code != 0 {
-		c.JSON(http.StatusOK, LoginResponse{
-			Response: Response{StatusCode: code, StatusMsg: message},
-		})
-		return
-	} else {
-		token, _ := auth.GenerateToken(req.Username, userId)
-		c.JSON(http.StatusOK, LoginResponse{
-			Response: Response{StatusCode: code, StatusMsg: message},
-			UserId:   userId,
-			Token:    token,
-		})
-		return
-	}
+	// 返回响应
+	c.JSON(http.StatusOK, RegisterResponse)
 }
 
 // Login POST /douyin/user/login/ 用户登录
@@ -76,42 +49,22 @@ func (uc *UserController) Login(c *gin.Context) {
 	clientIP := c.ClientIP()
 	// 检查IP是否被限制
 	if isLimited := utils.IsRateLimited(clientIP); isLimited {
-		c.JSON(http.StatusOK, LoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "登录请求次数过多, 请稍后再试"},
-		})
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "登录请求次数过多, 请稍后再试"})
 		return
 	}
 
 	// 解析登录请求参数并校验
 	req, isValid := LoginParseAndValidateParams(c)
 	if !isValid {
-		c.JSON(http.StatusOK, LoginResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "用户名或密码不合法, 请检查"},
-		})
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "用户名或密码不合法, 请检查"})
 		return
 	}
 
-	code, message := uc.userService.Login(req.Username, req.Password)
-	if code != 0 {
-		c.JSON(http.StatusOK, LoginResponse{
-			Response: Response{StatusCode: code, StatusMsg: message},
-		})
-	} else {
-		user, err := uc.userService.QueryUserByUsername(req.Username)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, LoginResponse{
-				Response: Response{StatusCode: 1, StatusMsg: "Internal Server Error"},
-			})
-			return
-		}
-		token, _ := auth.GenerateToken(user.Username, user.ID)
-		c.JSON(http.StatusOK, LoginResponse{
-			Response: Response{StatusCode: code, StatusMsg: message},
-			UserId:   user.ID,
-			Token:    token,
-		})
-		return
-	}
+	// 执行登录操作
+	LoginResponse := uc.userFacade.Login(req)
+
+	// 返回响应
+	c.JSON(http.StatusOK, LoginResponse)
 }
 
 // GetUserInfo GET /douyin/user/ 用户信息
@@ -120,21 +73,13 @@ func (uc *UserController) GetUserInfo(c *gin.Context) {
 	// 解析请求参数并校验
 	userId, isValid := GetUserInfoParseAndValidateParams(c)
 	if !isValid {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "用户ID不合法"},
-		})
+		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "用户ID不合法"})
 		return
 	}
 
-	userinfo, err := uc.userService.QueryUserInfoByID(userId)
-	if err != nil {
-		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{StatusCode: 1, StatusMsg: err.Error()},
-		})
-		return
-	}
-	c.JSON(http.StatusOK, UserResponse{
-		Response: Response{StatusCode: 0},
-		UserInfo: userinfo,
-	})
+	// 执行查询操作
+	UserResponse := uc.userFacade.GetUserInfo(userId)
+
+	// 返回响应
+	c.JSON(http.StatusOK, UserResponse)
 }

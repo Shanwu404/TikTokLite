@@ -39,8 +39,8 @@ func TestUserServiceImpl_Register(t *testing.T) {
 func TestUserServiceImpl_Login(t *testing.T) {
 	UserServiceImplInit()
 	usi := UserServiceImpl{}
-	code, message := usi.Login("Lqs", "1000")
-	fmt.Println(code, message)
+	userId, code, message := usi.Login("Lqs", "1000")
+	fmt.Println(userId, code, message)
 }
 
 func TestIsUserIdExist(t *testing.T) {
