@@ -7,16 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type CommentListResponse struct {
-	Response
-	CommentList []CommentInfo `json:"comment_list,omitempty"`
-}
-
-type CommentActionResponse struct {
-	Response
-	CommentInfo CommentInfo `json:"comment,omitempty"`
-}
-
 type CommentController struct {
 	commentFacade facade.CommentFacade
 }
@@ -31,8 +21,8 @@ func NewCommentController() *CommentController {
 func (cc *CommentController) CommentAction(c *gin.Context) {
 	req, valid := CommentActionParseAndValidateParams(c)
 	if !valid {
-		c.JSON(http.StatusBadRequest, CommentActionResponse{
-			Response: Response{-1, "Invalid Request."},
+		c.JSON(http.StatusBadRequest, facade.CommentActionResponse{
+			Response: facade.Response{StatusCode: -1, StatusMsg: "Invalid Request."},
 		})
 		return
 	}
@@ -44,8 +34,8 @@ func (cc *CommentController) CommentAction(c *gin.Context) {
 func (cc *CommentController) CommentList(c *gin.Context) {
 	req, valid := CommentListParseAndValidateParams(c)
 	if !valid {
-		c.JSON(http.StatusBadRequest, CommentListResponse{
-			Response: Response{-1, "Invalid Request."},
+		c.JSON(http.StatusBadRequest, facade.CommentListResponse{
+			Response: facade.Response{StatusCode: -1, StatusMsg: "Invalid Request."},
 		})
 		return
 	}

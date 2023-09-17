@@ -8,18 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// type CommentActionRequest struct {
-// 	UserId     int64
-// 	VideoId    int64
-// 	ActionType string
-// 	Content    string
-// 	CommentId  int64
-// }
-
-// type CommentListRequest struct {
-// 	Video service.VideoParams
-// }
-
 func CommentActionParseAndValidateParams(c *gin.Context) (facade.CommentActionRequest, bool) {
 	req := facade.CommentActionRequest{}
 	usi := service.NewUserService()
