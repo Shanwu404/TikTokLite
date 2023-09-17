@@ -95,10 +95,12 @@ func (mb *MyBucket) UploadVideo(file *multipart.FileHeader, internalURL string) 
 	return nil
 }
 
+const SignedURLExpiration = 600
+
 func (mb *MyBucket) ObjectExternalURL(internalURL string) (signedURL string, err error) {
 	// 生成用于下载的签名URL，并指定签名URL的有效时间为60秒。
 	for i := 0; i < 5; i++ {
-		signedURL, err = mb.SignURL(internalURL, oss.HTTPGet, 600)
+		signedURL, err = mb.SignURL(internalURL, oss.HTTPGet, SignedURLExpiration)
 		if err != nil {
 			logger.Errorln("Failed to get object URL:", internalURL, err)
 			continue

@@ -2,7 +2,6 @@ package service
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -40,12 +39,17 @@ func (vService *VideoServiceImpl) Exist(videoID int64) bool {
 		if err != nil {
 			return false
 		}
-		redisValueJSON, err := json.Marshal(VideoParams(video))
+		exBucket, err := ossClient.NewBucket(external)
 		if err != nil {
-			logger.Errorf("视频信息序列化失败，视频信息:%+v\n", video)
+			logger.Errorln("Get bucket error:", err)
 			return true
 		}
-		redis.RDb.SetNX(redis.Ctx, redisKey, redisValueJSON, 0)
+		externalURL, err := exBucket.ObjectExternalURL(video.PlayURL)
+		if err != nil {
+			logger.Errorln("Get video play url error:", err)
+			return true
+		}
+		redis.RDb.SetNX(redis.Ctx, redisKey, externalURL, time.Second*(ossClient.SignedURLExpiration-60))
 	}
 	return true
 }
@@ -60,9 +64,14 @@ func (vService *VideoServiceImpl) GetMultiVideoBefore(latestTimestamp int64, cou
 	videos := dao.QueryVideosByPublishTime(latestTime, count)
 	videoSlc := make([]VideoParams, 0, len(videos))
 	for i := range videos {
-		videos[i].PlayURL, err = mb.ObjectExternalURL(videos[i].PlayURL)
-		if err != nil {
-			logger.Errorln("Get object url error:", err)
+		externalPlayURL, ok := getPlayURLFromRedis(videos[i].ID)
+		if ok {
+			videos[i].PlayURL = externalPlayURL
+		} else {
+			videos[i].PlayURL, err = mb.ObjectExternalURL(videos[i].PlayURL)
+			if err != nil {
+				logger.Errorln("Get object url error:", err)
+			}
 		}
 		videos[i].CoverURL, err = mb.ObjectExternalURL(videos[i].CoverURL)
 		if err != nil {
@@ -130,9 +139,14 @@ func (vService *VideoServiceImpl) GetVideoListByUserId(AuthorID int64) []VideoPa
 	videos := dao.QueryVideosByAuthorId(AuthorID)
 	results := make([]VideoParams, 0, len(videos))
 	for i := range videos {
-		videos[i].PlayURL, err = mb.ObjectExternalURL(videos[i].PlayURL)
-		if err != nil {
-			logger.Errorln("Get object url error:", err)
+		externalPlayURL, ok := getPlayURLFromRedis(videos[i].ID)
+		if ok {
+			videos[i].PlayURL = externalPlayURL
+		} else {
+			videos[i].PlayURL, err = mb.ObjectExternalURL(videos[i].PlayURL)
+			if err != nil {
+				logger.Errorln("Get object url error:", err)
+			}
 		}
 		videos[i].CoverURL, err = mb.ObjectExternalURL(videos[i].CoverURL)
 		if err != nil {
@@ -151,6 +165,15 @@ func (vService *VideoServiceImpl) QueryVideoById(videoID int64) VideoParams {
 	}
 	videoFromDao, _ := dao.QueryVideoByID(videoID)
 	// 视频实际链接很适合放入redis，设置过期时间
+	externalPlayURL, ok := getPlayURLFromRedis(videoFromDao.ID)
+	if ok {
+		videoFromDao.PlayURL = externalPlayURL
+	} else {
+		videoFromDao.PlayURL, err = mb.ObjectExternalURL(videoFromDao.PlayURL)
+		if err != nil {
+			logger.Errorln("Get object url error:", err)
+		}
+	}
 	videoFromDao.PlayURL, err = mb.ObjectExternalURL(videoFromDao.PlayURL)
 	if err != nil {
 		logger.Errorln("Get video play url error:", err)
@@ -199,6 +222,13 @@ func captureFrame(dataHeader *multipart.FileHeader, filename string) io.Reader {
 	return buf
 }
 
-// func readVideoByIDWithSync(videoID int64) VideoParams {
-// redis.RDb.HSet()
-// }
+func getPlayURLFromRedis(videoID int64) (string, bool) {
+	redisKey := "video:" + strconv.FormatInt(videoID, 10)
+	playURL, err := redis.RDb.Get(redis.Ctx, redisKey).Result()
+	if err != nil {
+		logger.Debugf("No PlayURL of videoID:%v in redis.\n", videoID)
+		return "", false
+	}
+	logger.Debugf("The PlayURL of videoID:%v in redis is %v.\n", videoID, playURL)
+	return playURL, true
+}
