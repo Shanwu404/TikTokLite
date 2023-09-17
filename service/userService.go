@@ -28,7 +28,7 @@ type UserService interface {
 	Register(username string, password string) (int64, int32, string)
 
 	// Login 用户登录
-	Login(username string, password string) (int32, string)
+	Login(username string, password string) (int64, int32, string)
 
 	// IsUserIdExist 查询用户ID是否存在
 	IsUserIdExist(id int64) bool

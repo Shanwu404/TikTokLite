@@ -160,21 +160,21 @@ func (us *UserServiceImpl) Register(username string, password string) (int64, in
 	return newUser.ID, 0, "Register successfully!"
 }
 
-// Login 用户登录，返回状态码和状态信息
-func (us *UserServiceImpl) Login(username string, password string) (int32, string) {
+// Login 用户登录，返回用户ID状态码和状态信息
+func (us *UserServiceImpl) Login(username string, password string) (int64, int32, string) {
 	logger.Infoln("Attempting login for user:", username)
 
 	user, err := dao.QueryUserByUsername(username)
 	if err != nil {
 		logger.Errorln("User login error:", err)
-		return 1, "User doesn't exist!"
+		return -1, 1, "User doesn't exist!"
 	}
 
 	arePasswordsEqual := ComparePasswords(user.Password, password)
 	if arePasswordsEqual {
-		return 0, "Login success"
+		return user.ID, 0, "Login success"
 	} else {
-		return 1, "Username or Password error"
+		return -1, 1, "Username or Password error"
 	}
 }
 
