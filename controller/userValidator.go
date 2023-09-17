@@ -4,22 +4,13 @@ import (
 	"strconv"
 	"unicode"
 
+	"github.com/Shanwu404/TikTokLite/facade"
 	"github.com/Shanwu404/TikTokLite/log/logger"
 	"github.com/gin-gonic/gin"
 )
 
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type RegisterRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-func LoginParseAndValidateParams(c *gin.Context) (LoginRequest, bool) {
-	req := LoginRequest{
+func LoginParseAndValidateParams(c *gin.Context) (facade.LoginRequest, bool) {
+	req := facade.LoginRequest{
 		Username: c.Query("username"),
 		Password: c.Query("password"),
 	}
@@ -39,8 +30,8 @@ func LoginParseAndValidateParams(c *gin.Context) (LoginRequest, bool) {
 	return req, true
 }
 
-func RegisterParseAndValidateParams(c *gin.Context) (RegisterRequest, bool) {
-	req := RegisterRequest{
+func RegisterParseAndValidateParams(c *gin.Context) (facade.RegisterRequest, bool) {
+	req := facade.RegisterRequest{
 		Username: c.Query("username"),
 		Password: c.Query("password"),
 	}

@@ -3,18 +3,13 @@ package controller
 import (
 	"strconv"
 
+	"github.com/Shanwu404/TikTokLite/facade"
 	"github.com/Shanwu404/TikTokLite/log/logger"
 	"github.com/gin-gonic/gin"
 )
 
-type RelationActionRequest struct {
-	UserId     int64
-	ToUserId   int64
-	ActionType int64
-}
-
-func RelationActionParseAndValidateParams(c *gin.Context) (RelationActionRequest, bool) {
-	req := RelationActionRequest{}
+func RelationActionParseAndValidateParams(c *gin.Context) (facade.RelationActionRequest, bool) {
+	req := facade.RelationActionRequest{}
 
 	var err error
 

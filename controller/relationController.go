@@ -38,7 +38,7 @@ func (rc *RelationController) RelationAction(c *gin.Context) {
 	}
 
 	// 2. 执行关注/取关操作
-	RelationResponse := rc.relationFacade.RelationAction(req.UserId, req.ToUserId, req.ActionType)
+	RelationResponse := rc.relationFacade.RelationAction(req)
 
 	// 3. 返回响应
 	c.JSON(http.StatusOK, RelationResponse)

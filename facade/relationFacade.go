@@ -4,6 +4,21 @@ import (
 	"github.com/Shanwu404/TikTokLite/service"
 )
 
+type RelationActionRequest struct {
+	UserId     int64
+	ToUserId   int64
+	ActionType int64
+}
+
+type RelationResponse struct {
+	Response
+}
+
+type UserListResponse struct {
+	Response
+	UserList []service.UserInfoParams `json:"user_list"`
+}
+
 type RelationFacade struct {
 	relationService service.RelationService
 	userService     service.UserService
@@ -16,21 +31,12 @@ func NewRelationFacade() *RelationFacade {
 	}
 }
 
-type RelationResponse struct {
-	Response
-}
-
-type UserListResponse struct {
-	Response
-	UserList []service.UserInfoParams `json:"user_list"`
-}
-
 // RelationAction 关注/取关
-func (rf *RelationFacade) RelationAction(userId, toUserId, actionType int64) RelationResponse {
+func (rf *RelationFacade) RelationAction(req RelationActionRequest) RelationResponse {
 	switch {
-	case actionType == 1:
+	case req.ActionType == 1:
 		// 执行关注
-		flag, err := rf.relationService.Follow(userId, toUserId)
+		flag, err := rf.relationService.Follow(req.UserId, req.ToUserId)
 		if err != nil || !flag {
 			return RelationResponse{
 				Response: Response{StatusCode: -1, StatusMsg: err.Error()},
@@ -40,9 +46,9 @@ func (rf *RelationFacade) RelationAction(userId, toUserId, actionType int64) Rel
 			Response: Response{StatusCode: 0, StatusMsg: "follow success!"},
 		}
 
-	case actionType == 2:
+	case req.ActionType == 2:
 		// 执行取关
-		flag, err := rf.relationService.UnFollow(userId, toUserId)
+		flag, err := rf.relationService.UnFollow(req.UserId, req.ToUserId)
 		if err != nil || !flag {
 			return RelationResponse{
 				Response: Response{StatusCode: -1, StatusMsg: err.Error()},

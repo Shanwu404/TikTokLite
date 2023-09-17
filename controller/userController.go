@@ -37,7 +37,7 @@ func (uc *UserController) Register(c *gin.Context) {
 	}
 
 	// 执行注册操作
-	RegisterResponse := uc.userFacade.Register(req.Username, req.Password)
+	RegisterResponse := uc.userFacade.Register(req)
 
 	// 返回响应
 	c.JSON(http.StatusOK, RegisterResponse)
@@ -61,7 +61,7 @@ func (uc *UserController) Login(c *gin.Context) {
 	}
 
 	// 执行登录操作
-	LoginResponse := uc.userFacade.Login(req.Username, req.Password)
+	LoginResponse := uc.userFacade.Login(req)
 
 	// 返回响应
 	c.JSON(http.StatusOK, LoginResponse)

@@ -5,19 +5,14 @@ import (
 	"github.com/Shanwu404/TikTokLite/service"
 )
 
-type UserFacade struct {
-	userService service.UserService
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
-func NewUserFacade() *UserFacade {
-	return &UserFacade{
-		userService: service.NewUserService(),
-	}
-}
-
-type Response struct {
-	StatusCode int32  `json:"status_code"`
-	StatusMsg  string `json:"status_msg"`
+type RegisterRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type UserInfoResponse struct {
@@ -37,16 +32,26 @@ type RegisterResponse struct {
 	Token  string `json:"token"`
 }
 
+type UserFacade struct {
+	userService service.UserService
+}
+
+func NewUserFacade() *UserFacade {
+	return &UserFacade{
+		userService: service.NewUserService(),
+	}
+}
+
 // Register 用户注册
-func (uf *UserFacade) Register(username, password string) RegisterResponse {
-	userId, code, message := uf.userService.Register(username, password)
+func (uf *UserFacade) Register(req RegisterRequest) RegisterResponse {
+	userId, code, message := uf.userService.Register(req.Username, req.Password)
 
 	if code != 0 {
 		return RegisterResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 		}
 	} else {
-		token, _ := auth.GenerateToken(username, userId)
+		token, _ := auth.GenerateToken(req.Username, userId)
 		return RegisterResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 			UserId:   userId,
@@ -56,15 +61,15 @@ func (uf *UserFacade) Register(username, password string) RegisterResponse {
 }
 
 // Login 用户登录
-func (uf *UserFacade) Login(username, password string) LoginResponse {
-	userId, code, message := uf.userService.Login(username, password)
+func (uf *UserFacade) Login(req LoginRequest) LoginResponse {
+	userId, code, message := uf.userService.Login(req.Username, req.Password)
 
 	if code != 0 {
 		return LoginResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 		}
 	} else {
-		token, _ := auth.GenerateToken(username, userId)
+		token, _ := auth.GenerateToken(req.Username, userId)
 		return LoginResponse{
 			Response: Response{StatusCode: code, StatusMsg: message},
 			UserId:   userId,
