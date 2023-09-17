@@ -2,57 +2,15 @@
 package controller
 
 import (
-	"mime/multipart"
 	"time"
 	"unicode/utf8"
 
+	"github.com/Shanwu404/TikTokLite/facade"
 	"github.com/gin-gonic/gin"
 )
 
-type douyinFeedRequest struct {
-	LatestTime int64  `form:"latest_time"`
-	Token      string `form:"token"`
-}
-
-type douyinFeedResponse struct {
-	Response
-	NextTime  int64   `json:"next_time,omitempty"`
-	VideoList []Video `json:"video_list"`
-}
-
-type douyinPublishActionRequest struct {
-	Token string                `json:"token"`
-	Data  *multipart.FileHeader `json:"data"`
-	Title string                `json:"tilte"`
-}
-
-type douyinPublishActionResponse struct {
-	Response
-}
-
-type douyinPublishListRequest struct {
-	UserID int64  `form:"user_id"`
-	Token  string `form:"token"`
-}
-
-type douyinPublishListResponse struct {
-	Response
-	VideoList []Video `json:"video_list"`
-}
-
-type Video struct {
-	ID            int64    `json:"id"`
-	Author        UserInfo `json:"author"`
-	PlayURL       string   `json:"play_url"`
-	CoverURL      string   `json:"cover_url"`
-	FavoriteCount int64    `json:"favorite_count"`
-	CommentCount  int64    `json:"comment_count"`
-	IsFavorite    bool     `json:"is_favorite"`
-	Title         string   `json:"title"`
-}
-
-func feedParseAndValidateParams(c *gin.Context) (douyinFeedRequest, bool) {
-	req := douyinFeedRequest{}
+func feedParseAndValidateParams(c *gin.Context) (facade.DouyinFeedRequest, bool) {
+	req := facade.DouyinFeedRequest{}
 	c.ShouldBindQuery(&req)
 	current := time.Now().Unix()
 	if req.LatestTime > current {
@@ -61,8 +19,8 @@ func feedParseAndValidateParams(c *gin.Context) (douyinFeedRequest, bool) {
 	return req, true
 }
 
-func publishActionParseAndValidateParams(c *gin.Context) (douyinPublishActionRequest, bool) {
-	req := douyinPublishActionRequest{
+func publishActionParseAndValidateParams(c *gin.Context) (facade.DouyinPublishActionRequest, bool) {
+	req := facade.DouyinPublishActionRequest{
 		Title: c.PostForm("title"),
 	}
 	data, err := c.FormFile("data")
@@ -79,8 +37,8 @@ func publishActionParseAndValidateParams(c *gin.Context) (douyinPublishActionReq
 	return req, true
 }
 
-func publishListParseAndValidateParams(c *gin.Context) (douyinPublishListRequest, bool) {
-	req := douyinPublishListRequest{}
+func publishListParseAndValidateParams(c *gin.Context) (facade.DouyinPublishListRequest, bool) {
+	req := facade.DouyinPublishListRequest{}
 	c.ShouldBindQuery(&req)
 	if req.UserID <= 0 {
 		return req, false
