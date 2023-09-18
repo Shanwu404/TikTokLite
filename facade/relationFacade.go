@@ -1,6 +1,8 @@
 package facade
 
 import (
+	"sync"
+
 	"github.com/Shanwu404/TikTokLite/service"
 )
 
@@ -76,13 +78,19 @@ func (rf *RelationFacade) FollowsList(userId int64) UserListResponse {
 		}
 	}
 
-	// 将用户关注列表转换为UserInfo列表
+	// 将用户关注列表转换为UserInfo列表 (并发处理)
+	var wg sync.WaitGroup
+	wg.Add(len(followList))
 	userInfoList := make([]service.UserInfoParams, 0, len(followList))
 	for _, followId := range followList {
-		UserInfo, _ := rf.userService.QueryUserInfoByID(followId)
-		UserInfo.IsFollow, _ = rf.relationService.IsFollowed(userId, followId)
-		userInfoList = append(userInfoList, UserInfo)
+		go func(followId int64) {
+			defer wg.Done()
+			UserInfo, _ := rf.userService.QueryUserInfoByID(followId)
+			UserInfo.IsFollow, _ = rf.relationService.IsFollowed(userId, followId)
+			userInfoList = append(userInfoList, UserInfo)
+		}(followId)
 	}
+	wg.Wait()
 
 	return UserListResponse{
 		Response: Response{StatusCode: 0, StatusMsg: "get follow list success"},
@@ -101,13 +109,19 @@ func (rf *RelationFacade) FollowersList(userId int64) UserListResponse {
 		}
 	}
 
-	// 将用户粉丝列表转换为UserInfo列表
+	// 将用户粉丝列表转换为UserInfo列表 (并发处理)
+	var wg sync.WaitGroup
+	wg.Add(len(followerList))
 	userInfoList := make([]service.UserInfoParams, 0, len(followerList))
 	for _, followerId := range followerList {
-		UserInfo, _ := rf.userService.QueryUserInfoByID(followerId)
-		UserInfo.IsFollow, _ = rf.relationService.IsFollowed(userId, followerId)
-		userInfoList = append(userInfoList, UserInfo)
+		go func(followerId int64) {
+			defer wg.Done()
+			UserInfo, _ := rf.userService.QueryUserInfoByID(followerId)
+			UserInfo.IsFollow, _ = rf.relationService.IsFollowed(userId, followerId)
+			userInfoList = append(userInfoList, UserInfo)
+		}(followerId)
 	}
+	wg.Wait()
 
 	return UserListResponse{
 		Response: Response{StatusCode: 0, StatusMsg: "get follower list success"},
@@ -126,13 +140,19 @@ func (rf *RelationFacade) FriendsList(userId int64) UserListResponse {
 		}
 	}
 
-	// 将用户好友列表转换为UserInfo列表
+	// 将用户好友列表转换为UserInfo列表 (并发处理)
+	var wg sync.WaitGroup
+	wg.Add(len(friendList))
 	userInfoList := make([]service.UserInfoParams, 0, len(friendList))
 	for _, friendId := range friendList {
-		UserInfo, _ := rf.userService.QueryUserInfoByID(friendId)
-		UserInfo.IsFollow, _ = rf.relationService.IsFollowed(userId, friendId)
-		userInfoList = append(userInfoList, UserInfo)
+		go func(friendId int64) {
+			defer wg.Done()
+			UserInfo, _ := rf.userService.QueryUserInfoByID(friendId)
+			UserInfo.IsFollow, _ = rf.relationService.IsFollowed(userId, friendId)
+			userInfoList = append(userInfoList, UserInfo)
+		}(friendId)
 	}
+	wg.Wait()
 
 	return UserListResponse{
 		Response: Response{StatusCode: 0, StatusMsg: "get friend list success"},
