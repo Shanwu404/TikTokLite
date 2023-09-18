@@ -2,126 +2,42 @@ package controller
 
 import (
 	"net/http"
-	"strconv"
 
-	"github.com/Shanwu404/TikTokLite/service"
+	"github.com/Shanwu404/TikTokLite/facade"
 	"github.com/gin-gonic/gin"
 )
 
-type FavoriteListResponse struct {
-	Response
-	VideoList []Video `json:"video_list,omitempty"`
-}
-
 type LikeController struct {
-	videoService    service.VideoService
-	userService     service.UserService
-	relationService service.RelationService
-	likeService     service.LikeService
-	commentService  service.CommentService
+	likeFacade facade.LikeFacade
 }
 
 func NewLikeController() *LikeController {
 	return &LikeController{
-		videoService:    service.NewVideoService(),
-		userService:     service.NewUserService(),
-		relationService: service.NewRelationService(),
-		likeService:     service.NewLikeService(),
-		commentService:  service.NewCommentService(),
+		likeFacade: *facade.NewLikeFacade(),
 	}
 }
 
 // FavoriteAction POST /douyin/favorite/action/ 赞操作
 func (lc *LikeController) FavoriteAction(c *gin.Context) {
-	lsi := service.LikeServiceImpl{}
-	usi := service.NewUserService()
-	vsi := service.NewVideoService()
-
-	//获取参数
-	actionType := c.Query("action_type")
-	userId := c.GetInt64("id")
-	id := c.Query("video_id")
-	videoId, _ := strconv.ParseInt(id, 10, 64)
-
-	//参数校验
-	if actionType != "1" && actionType != "2" {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "invalid action type!"})
+	req, valid := LikeActionParseAndValidateParams(c)
+	if !valid {
+		c.JSON(http.StatusBadRequest, facade.LikeActionResponse{
+			Response: facade.Response{StatusCode: -1, StatusMsg: "Invalid Request."},
+		})
 		return
 	}
-	flag := usi.IsUserIdExist(userId)
-	if !flag {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "user doesn't exist!"})
-		return
-	}
-	flag2 := vsi.Exist(videoId)
-	if !flag2 {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "video doesn't exist!"})
-		return
-	}
-
-	if actionType == "1" {
-		if err := lsi.Like(userId, videoId); err != nil {
-			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "failed"})
-			return
-		}
-		c.JSON(http.StatusOK, Response{StatusCode: 0, StatusMsg: "like success"})
-	} else if actionType == "2" {
-		if err := lsi.Unlike(userId, videoId); err != nil {
-			c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "failed"})
-			return
-		}
-		c.JSON(http.StatusOK, Response{StatusCode: 0, StatusMsg: "unlike success"})
-	}
-
+	c.JSON(http.StatusOK, lc.likeFacade.FavoriteAction(req))
 }
 
 // FavoriteList GET /douyin/favorite/list/ 喜欢列表
 func (lc *LikeController) FavoriteList(c *gin.Context) {
-	var videoList []Video
-	usi := service.NewUserService()
-
-	//获取参数
-	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, FavoriteListResponse{
-			Response: Response{StatusCode: 1, StatusMsg: "Invalid value."},
+	req, valid := LikeListParseAndValidateParams(c)
+	if !valid {
+		c.JSON(http.StatusBadRequest, facade.LikeListResponse{
+			Response: facade.Response{StatusCode: -1, StatusMsg: "Invalid Request."},
 		})
 		return
 	}
+	c.JSON(http.StatusOK, lc.likeFacade.FavoriteList(req))
 
-	//参数校验
-	flag := usi.IsUserIdExist(userId)
-	if !flag {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "user doesn't exist!"})
-		return
-	}
-
-	videos := lc.likeService.GetLikeLists(userId)
-	// var videoList = make([]Video, 0, len(videos))
-	for _, videoParam := range videos { //将视频的详细信息格式化
-
-		authorInfo, _ := lc.userService.QueryUserInfoByID(videoParam.AuthorID)
-		// authorInfo := UserInfo{Id: videoParam.AuthorID}
-		// vc.completeUserInfo(&authorInfo, userId)
-		authorInfo.FollowCount, _ = lc.relationService.CountFollows(authorInfo.Id)
-		authorInfo.FollowerCount, _ = lc.relationService.CountFollowers(authorInfo.Id)
-		authorInfo.IsFollow, _ = lc.relationService.IsFollowed(userId, authorInfo.Id)
-		authorInfo.WorkCount = int64(len(lc.videoService.GetVideoListByUserId(authorInfo.Id)))
-		authorInfo.FavoriteCount = lc.likeService.CountLikes(authorInfo.Id)
-		video := Video{
-			ID:            videoParam.ID,
-			Author:        UserInfo(authorInfo),
-			PlayURL:       videoParam.PlayURL,
-			CoverURL:      videoParam.CoverURL,
-			FavoriteCount: lc.likeService.CountLikes(videoParam.ID),
-			CommentCount:  lc.commentService.CountComments(videoParam.ID),
-			IsFavorite:    lc.likeService.IsLike(videoParam.ID, userId),
-			Title:         videoParam.Title,
-		}
-		videoList = append(videoList, video)
-	}
-	c.JSON(http.StatusOK, FavoriteListResponse{
-		Response:  Response{StatusCode: 0, StatusMsg: "success"},
-		VideoList: videoList,
-	})
 }
