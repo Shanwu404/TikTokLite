@@ -45,7 +45,9 @@ func LikeListParseAndValidateParams(c *gin.Context) (facade.LikeListRequest, boo
 	usi := service.NewUserService()
 
 	// 判断 userId 是否存在
-	userId := c.GetInt64("user_id")
+	id := c.Query("user_id")
+	userId, _ := strconv.ParseInt(id, 10, 64)
+	// userId := c.GetInt64("user_id")
 	flag := usi.IsUserIdExist(userId)
 	if !flag {
 		return req, false
